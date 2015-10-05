@@ -48,16 +48,52 @@ class Line(models.Model):
     A model for each line of a script
     """
 
+    class Meta:
+        index_together = (
+            ('script', 'number'),
+        )
+
     script = models.ForeignKey(Script, related_name="lines")
     """Which :class:`Script` the line belongs to"""
 
-    number = models.IntegerField(default=1)
+    number = models.IntegerField(default=0)
     """Line number"""
 
     text = models.TextField(default="", blank=True, null=True)
 
     def __repr__(self):
         return str(self.number) + ": " + self.text
+
+    def __unicode__(self):
+        return self.__repr__()
+
+class Token(models.Model):
+    """
+    A model for each token of a script
+    """
+    class Meta:
+        index_together = (
+            ('script', 'type'),
+        )
+
+    script = models.ForeignKey(Script, related_name="tokens")
+    """Which :class:`Script` the token belongs to"""
+
+    line = models.ForeignKey(Line, related_name="tokens")
+    """Which :class:`Line` the token belongs to"""
+
+    st_col = models.IntegerField(default=0)
+    """starting position in a line"""
+
+    ed_col = models.IntegerField(default=0)
+    """ending position in a line"""
+
+    type = models.CharField(max_length=32, default="", blank=True, null=True)
+
+    text = models.TextField(default="", blank=True, null=True)
+
+    def __repr__(self):
+        return str(self.type) + ": " + self.text
 
     def __unicode__(self):
         return self.__repr__()
