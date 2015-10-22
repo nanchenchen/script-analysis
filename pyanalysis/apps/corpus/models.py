@@ -14,7 +14,6 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     """The :py:class:`datetime.datetime` when the dataset was created."""
 
-
     def __unicode__(self):
         return self.name
 
