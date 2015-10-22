@@ -159,10 +159,12 @@ class Dictionary(models.Model):
             for dic_token_index, dic_token_freq in bow:
                 dic_token_id = self.get_token_id(dic_token_index)
                 document_freq = gdict.dfs[dic_token_index]
+
                 try:
-                    tf = dic_token_freq / num_tokens
+                    tf = float(dic_token_freq) / float(num_tokens)
                     idf = math.log(total_documents / document_freq)
                     tfidf = tf * idf
+
                 except:
                     import pdb
                     pdb.set_trace()
@@ -198,11 +200,10 @@ class Dictionary(models.Model):
 class DictToken(models.Model):
     dictionary = models.ForeignKey(Dictionary, related_name='dic_tokens')
     index = models.IntegerField()
-    type = models.CharField(max_length=32, default="", blank=True, null=True)
     text = models.CharField(max_length=256)
     document_frequency = models.IntegerField()
 
-    scripts = models.ManyToManyField(Script, related_name='dic_tokens')
+    scripts = models.ManyToManyField(Script, through='TokenVectorElement', related_name='dic_tokens')
 
     def __repr__(self):
         return self.text
@@ -213,7 +214,7 @@ class DictToken(models.Model):
 class TokenVectorElement(models.Model):
     script = models.ForeignKey(Script, related_name="token_vector_elements")
     dic_token = models.ForeignKey(DictToken, related_name="token_vector_elements")
-    frequency = models.IntegerField(default=0)
 
+    frequency = models.IntegerField(default=0)
     dic_token_index = models.IntegerField(default=0)
     tfidf = models.FloatField(default=0.0)

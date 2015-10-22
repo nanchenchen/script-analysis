@@ -31,11 +31,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('index', models.IntegerField()),
-                ('type', models.CharField(default=b'', max_length=32, null=True, blank=True)),
                 ('text', models.CharField(max_length=256)),
                 ('document_frequency', models.IntegerField()),
                 ('dictionary', models.ForeignKey(related_name='dic_tokens', to='enhance.Dictionary')),
-                ('scripts', models.ManyToManyField(related_name='dic_tokens', to='corpus.Script')),
             ],
             options={
             },
@@ -45,12 +43,20 @@ class Migration(migrations.Migration):
             name='TokenVectorElement',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('frequency', models.IntegerField()),
+                ('frequency', models.IntegerField(default=0)),
+                ('dic_token_index', models.IntegerField(default=0)),
+                ('tfidf', models.FloatField(default=0.0)),
                 ('dic_token', models.ForeignKey(related_name='token_vector_elements', to='enhance.DictToken')),
                 ('script', models.ForeignKey(related_name='token_vector_elements', to='corpus.Script')),
             ],
             options={
             },
             bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='dicttoken',
+            name='scripts',
+            field=models.ManyToManyField(related_name='dic_tokens', through='enhance.TokenVectorElement', to='corpus.Script'),
+            preserve_default=True,
         ),
     ]
