@@ -4,6 +4,7 @@ from django.conf import settings
 from fields import PositiveBigIntegerField
 from pyanalysis.apps.corpus.models import Dataset, Script
 from gensim.corpora import Dictionary as GensimDictionary
+import gensim.similarities
 
 # Create your models here.
 
@@ -196,6 +197,30 @@ class Dictionary(models.Model):
 
         logger.info("Created %d word vector entries" % count)
 
+    def load_sparse_matrix(self, use_tfidf=True):
+
+        script_id_list = []
+        results = []
+
+        scripts = self.dataset.scripts.all()
+
+        for script in scripts:
+            script_id_list.append(script.id)
+            results.append(map(lambda x: x.to_tuple(use_tfidf), script.token_vector_elements.all()))
+
+        return script_id_list, results
+
+    def calc_script_similarity_matrix(self):
+        script_id_list, matrix = self.load_sparse_matrix()
+        index = gensim.similarities.SparseMatrixSimilarity(matrix, num_features=self.dic_tokens.count())
+        for r_idx, row in enumerate(matrix):
+            sim_row = index[row]
+            for c_idx, sim in enumerate(sim_row):
+                sim_pair = SimilarityPair(src_script_id=script_id_list[r_idx],
+                                          tar_script_id=script_id_list[c_idx],
+                                          similarity=sim)
+                sim_pair.save()
+
 
 class DictToken(models.Model):
     dictionary = models.ForeignKey(Dictionary, related_name='dic_tokens')
@@ -218,3 +243,11 @@ class TokenVectorElement(models.Model):
     frequency = models.IntegerField(default=0)
     dic_token_index = models.IntegerField(default=0)
     tfidf = models.FloatField(default=0.0)
+
+    def to_tuple(self, use_tfidf=True):
+        return (self.dic_token_index, self.tfidf) if use_tfidf else (self.dic_token_index, self.frequency)
+
+class SimilarityPair(models.Model):
+    src_script = models.ForeignKey(Script, related_name="similarity_pairs", db_index=True)
+    tar_script = models.ForeignKey(Script, db_index=True)
+    similarity = models.FloatField(default=0.0)
