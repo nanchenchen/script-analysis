@@ -36,6 +36,13 @@ class Command(BaseCommand):
             logger.info("Calculating similarity...")
             dictionary.calc_script_similarity_matrix()
 
+        if action == 'all' or action == 'lda':
+            id2word=dictionary.gensim_dictionary
+            script_ids, m = dictionary.load_sparse_matrix()
+            lda = gensim.models.ldamodel.LdaModel(corpus=m, id2word=id2word, num_topics=10)
+            lda.print_topics(20)
+
+
         if action == 'all' or action == 'kmean':
             import gensim
             script_ids, m = dictionary.load_sparse_matrix()
