@@ -5,9 +5,9 @@ urlpatterns = patterns('',
 
                        url(r'^admin/', include(admin.site.urls)),
                        url(r'^api/', include('pyanalysis.apps.api.urls')),
-                       url(r'^docs/', include('docs.urls')),
+                       #url(r'^docs/', include('docs.urls')),
                        url(r'^', include('pyanalysis.apps.base.urls')),
-                       url(r'^topics/', include('pyanalysis.apps.enhance.urls')),
+                       #url(r'^topics/', include('pyanalysis.apps.enhance.urls')),
 )
 
 from django.conf import settings
