@@ -65,10 +65,7 @@ class Migration(migrations.Migration):
             name='token',
             index_together=set([('script', 'type')]),
         ),
-        migrations.AlterIndexTogether(
-            name='script',
-            index_together=set([('dataset', 'last_modified'), ('dataset', 'name')]),
-        ),
+
         migrations.AddField(
             model_name='line',
             name='script',

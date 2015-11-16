@@ -25,7 +25,6 @@ class Script(models.Model):
     class Meta:
         index_together = (
             ('dataset', 'name'),
-            ('dataset', 'last_modified'),
         )
 
     dataset = models.ForeignKey(Dataset, related_name="scripts")
