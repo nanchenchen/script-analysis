@@ -39,22 +39,25 @@ class SimilarityGraphView(APIView):
 
                 similarity_pairs = []
                 for script in scripts:
-                    links = script.similarity_pairs.filter(tar_script_id__gt=F('src_script_id'), similarity__gt=0).all()
+                    links = script.similarity_pairs.filter(tar_script_id__gt=F('src_script_id'), similarity__gt=0.1).all()
                     for l in links:
                         src_id = id_map[l.src_script_id]
                         tar_id = id_map[l.tar_script_id]
-                        similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': l.simiarity})
+                        similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': l.similarity})
 
-                results = {"nodes": scripts,
-                           "links": similarity_pairs}
-                import pdb
-                pdb.set_trace()
+                results = {
+                    "dataset": dataset_id,
+                    "nodes": scripts,
+                    "links": similarity_pairs}
+
 
                 output = serializers.SimilarityGraphSerializer(results)
 
                 return Response(output.data, status=status.HTTP_200_OK)
 
             except:
+                import traceback
+                traceback.print_exc()
                 return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)

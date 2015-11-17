@@ -22,10 +22,6 @@ class Script(models.Model):
     """
     A script is a file
     """
-    class Meta:
-        index_together = (
-            ('dataset', 'name'),
-        )
 
     dataset = models.ForeignKey(Dataset, related_name="scripts")
     """Which :class:`Dataset` the script belongs to"""

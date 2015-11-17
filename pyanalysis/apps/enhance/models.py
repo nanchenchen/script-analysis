@@ -225,7 +225,7 @@ class Dictionary(models.Model):
 class DictToken(models.Model):
     dictionary = models.ForeignKey(Dictionary, related_name='dic_tokens')
     index = models.IntegerField()
-    text = models.CharField(max_length=256)
+    text = models.TextField(default="", blank=True, null=True)
     document_frequency = models.IntegerField()
 
     scripts = models.ManyToManyField(Script, through='TokenVectorElement', related_name='dic_tokens')
