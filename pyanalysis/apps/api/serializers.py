@@ -3,12 +3,30 @@ from pyanalysis.apps.corpus import models as corpus_models
 from pyanalysis.apps.enhance import models as enhance_models
 
 
+class DatasetSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = corpus_models.Dataset
+        fields = ('id', 'name', 'description', 'count',  )
+        read_only_fields = ('id', 'name', 'description', 'count', )
+
+
+
 class ScriptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = corpus_models.Script
         fields = ('id', 'name', )
         read_only_fields = ('id', 'name', )
+
+class ScriptContentSerializer(serializers.ModelSerializer):
+
+    contents = serializers.CharField(required=True)
+
+    class Meta:
+        model = corpus_models.Script
+        fields = ('id', 'name', 'contents', )
+        read_only_fields = ('id', 'name', 'contents', )
 
 
 class SimilaritySerializer(serializers.Serializer):
@@ -21,3 +39,5 @@ class SimilarityGraphSerializer(serializers.Serializer):
     dataset = serializers.IntegerField(required=True)
     nodes = ScriptSerializer(many=True)
     links = SimilaritySerializer(many=True)
+
+

@@ -10,4 +10,5 @@ urlpatterns = patterns('',
                     #   url(r'^accounts/', include('django.contrib.auth.urls')),
                      #  url(r'^explorer(?:/(?P<dataset_pk>\d+))?/$', views.ExplorerView.as_view(), name='explorer'),
                      #  url(r'^grouper(?:/(?P<dataset_pk>\d+))?/$', views.GrouperView.as_view(), name='grouper'),
+                    url(r'^script_browser(?:/(?P<dataset_pk>\d+))?/$', views.ScriptBrowserView.as_view(), name='script_browser'),
 )

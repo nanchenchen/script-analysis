@@ -22,7 +22,7 @@ class SimilarityGraphView(APIView):
     """
     Get similarity pairs
 
-    **Request:** ``GET /api/similarity/1``
+    **Request:** ``GET /api/similarity/id=1``
     """
 
 
@@ -58,6 +58,52 @@ class SimilarityGraphView(APIView):
             except:
                 import traceback
                 traceback.print_exc()
+                return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)
+
+class ScriptContentView(APIView):
+    """
+    Get similarity pairs
+
+    **Request:** ``GET /api/script?id=1``
+    """
+
+
+    def get(self, request, format=None):
+        if request.query_params.get('id'):
+            script_id = int(request.query_params.get('id'))
+            try:
+
+                script = corpus_models.Script.objects.get(id=script_id)
+                output = serializers.ScriptContentSerializer(script)
+
+                return Response(output.data, status=status.HTTP_200_OK)
+
+            except:
+                import traceback
+                traceback.print_exc()
+                return Response("Script not exist", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Please specify script id", status=status.HTTP_400_BAD_REQUEST)
+
+
+class DatasetView(APIView):
+    """
+    Get details of a dataset
+
+    **Request:** ``GET /api/dataset/1``
+    """
+
+
+    def get(self, request, format=None):
+        if request.query_params.get('id'):
+            dataset_id = int(request.query_params.get('id'))
+            try:
+                dataset = corpus_models.Dataset.objects.get(id=dataset_id)
+                output = serializers.DatasetSerializer(dataset)
+                return Response(output.data, status=status.HTTP_200_OK)
+            except:
                 return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)

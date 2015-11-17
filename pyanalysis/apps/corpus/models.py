@@ -17,6 +17,10 @@ class Dataset(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def count(self):
+        return self.scripts.count()
+
 
 class Script(models.Model):
     """
@@ -29,6 +33,10 @@ class Script(models.Model):
     name = models.CharField(max_length=256)
 
     last_modified = models.DateTimeField(default=timezone.now)
+
+    @property
+    def contents(self):
+        return "".join(map(lambda x: x.text, self.lines.all()))
 
     def __repr__(self):
         return self.name

@@ -1,0 +1,105 @@
+@import 'bower/components-bootstrap/less/mixins';
+
+/* Full page application */
+// http://blog.stevensanderson.com/2011/10/05/full-height-app-layouts-a-css-trick-to-make-it-easier/
+
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    min-width: 1200px;
+}
+body {
+    font-family: 'Open Sans', "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 9pt;
+    background-color: rgb(230, 230, 230);
+    min-width: 1200px;
+}
+
+
+#titleWrap {
+    padding: 10px;
+    background-color: white;
+    -webkit-box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+    -moz-box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+
+    .title {
+        font-size: 2em;
+        font-weight: 700;
+    }
+
+    .logo{
+        width: 36px;
+        height: 36px;
+        margin: 8px;
+    }
+
+    .description {
+        font-size: 1.6em;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+
+    .dataset {
+        padding-left: 20px;
+        font-size: 1.6em;
+        position: fixed;
+        top: 15px;
+        right: 10px;
+
+    }
+}
+#content {
+    margin: 10px;
+}
+.placeholder {
+    color: #999;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5em;
+}
+.box {
+    margin: 0 2px;
+    padding: 5px;
+    -webkit-box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+    -moz-box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 1px rgba(0,0,0,.1);
+    border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    border: 0px solid #e3e3e3;
+    background-color: white;
+}
+.fix-height{
+    height: 700px;
+}
+
+.no-padding{
+    padding: 0;
+}
+similarity-graph{
+    .node {
+        fill: steelblue;
+        stroke: #fff;
+        stroke-width: 1.5px;
+    }
+
+    .link {
+        stroke: #999;
+        stroke-opacity: .6;
+    }
+    width: 100%;
+    height: 100%;
+}
+
+
+#code{
+    position: relative;
+    overflow-y: auto;
+}

@@ -5,6 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 api_root_urls = {
     'similarity': url(r'^similarity/$', views.SimilarityGraphView.as_view(), name='similarity-graph'),
+    'script': url(r'^script/$', views.ScriptContentView.as_view(), name='script'),
+    'dataset': url(r'^dataset/$', csrf_exempt(views.DatasetView.as_view()), name='dataset'),
 }
 
 urlpatterns = api_root_urls.values() + [
