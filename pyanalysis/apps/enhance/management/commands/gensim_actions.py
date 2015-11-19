@@ -33,8 +33,13 @@ class Command(BaseCommand):
         from pyanalysis.apps.enhance.models import Dictionary
         dictionary = Dictionary.objects.get(dataset_id=dataset_id)
         if action == 'all' or action == 'similarity':
-            logger.info("Calculating similarity...")
+            logger.info("Calculating consine similarity...")
             dictionary.calc_script_similarity_matrix()
+
+        if action == 'all' or action == 'common_calls':
+            logger.info("Calculating num of common calls...")
+            dictionary.calc_script_common_call_num()
+
 
         if action == 'all' or action == 'lda':
             id2word=dictionary.gensim_dictionary

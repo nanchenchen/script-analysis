@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
 
 from fields import PositiveBigIntegerField
@@ -221,6 +221,22 @@ class Dictionary(models.Model):
                                           similarity=sim)
                 sim_pair.save()
 
+    def calc_script_common_call_num(self):
+        scripts = self.dataset.scripts.all()
+        sim_pair_list = []
+        with transaction.atomic(savepoint=False):
+            for i in range(len(scripts)):
+                for j in range(i + 1, len(scripts)):
+                    common_call_num = len(scripts[i].extract_common_calls(scripts[j]))
+                    sim_pair_list.append(
+                        SimilarityPair(type='common_calls',
+                                       src_script_id=scripts[i].id,
+                                       tar_script_id=scripts[j].id,
+                                       similarity=common_call_num))
+
+                SimilarityPair.objects.bulk_create(sim_pair_list)
+                sim_pair_list = []
+
 
 class DictToken(models.Model):
     dictionary = models.ForeignKey(Dictionary, related_name='dic_tokens')
@@ -248,6 +264,7 @@ class TokenVectorElement(models.Model):
         return (self.dic_token_index, self.tfidf) if use_tfidf else (self.dic_token_index, self.frequency)
 
 class SimilarityPair(models.Model):
+    type = models.CharField(max_length=32, default="cosine", null=False, blank=False, db_index=True)
     src_script = models.ForeignKey(Script, related_name="similarity_pairs", db_index=True)
     tar_script = models.ForeignKey(Script, db_index=True)
     similarity = models.FloatField(default=0.0)

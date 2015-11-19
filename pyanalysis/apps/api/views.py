@@ -29,21 +29,33 @@ class SimilarityGraphView(APIView):
     def get(self, request, format=None):
         if request.query_params.get('id'):
             dataset_id = int(request.query_params.get('id'))
+            metric = request.query_params.get('metric')
+            threshold = {
+                'consine': 0.1,
+                'common_calls': 5
+            }
+
+            if metric is None:
+                metric = "consine"
+
             try:
 
                 dataset = corpus_models.Dataset.objects.get(id=dataset_id)
                 scripts = dataset.scripts.all()
+
                 id_map = {}
                 for idx, script in enumerate(scripts):
                     id_map[script.id] = idx
 
                 similarity_pairs = []
+
                 for script in scripts:
-                    links = script.similarity_pairs.filter(tar_script_id__gt=F('src_script_id'), similarity__gt=0.1).all()
+                    links = script.similarity_pairs.filter(type=metric, tar_script_id__gt=F('src_script_id'), similarity__gt=threshold[metric]).all()
                     for l in links:
                         src_id = id_map[l.src_script_id]
                         tar_id = id_map[l.tar_script_id]
                         similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': l.similarity})
+
 
                 results = {
                     "dataset": dataset_id,

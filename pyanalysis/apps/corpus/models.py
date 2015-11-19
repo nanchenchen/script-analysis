@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-
+from django.db.models import Count
 
 class Dataset(models.Model):
     """A top-level dataset object containing scripts."""
@@ -38,11 +38,25 @@ class Script(models.Model):
     def contents(self):
         return "".join(map(lambda x: x.text, self.lines.all()))
 
+    @property
+    def call_counts(self):
+        return self.calls.all().values('name').annotate(count=Count('name')).order_by('-count')
+
     def __repr__(self):
         return self.name
 
     def __unicode__(self):
         return self.__repr__()
+
+    def extract_common_calls(self, another_script):
+
+        own_call_set = set(map(lambda x: x.name, self.calls.all()))
+        another_call_set = set(map(lambda x: x.name, another_script.calls.all()))
+
+        common_set = own_call_set.intersection(another_call_set)
+
+        return list(common_set)
+
 
 
 class Line(models.Model):

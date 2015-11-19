@@ -11,13 +11,13 @@ class DatasetSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'name', 'description', 'count', )
 
 
-
 class ScriptSerializer(serializers.ModelSerializer):
 
+    call_counts = serializers.ListField(child=serializers.DictField())
     class Meta:
         model = corpus_models.Script
-        fields = ('id', 'name', )
-        read_only_fields = ('id', 'name', )
+        fields = ('id', 'name', 'call_counts', )
+        read_only_fields = ('id', 'name', 'call_counts', )
 
 class ScriptContentSerializer(serializers.ModelSerializer):
 

@@ -51,7 +51,8 @@
 
                     var request = {
                         params: {
-                            id: dataset
+                            id: dataset,
+                            metric: 'common_calls'
                         }
                     };
                     return $http.get(apiUrl, request)
