@@ -69,6 +69,23 @@ class Line(models.Model):
     def __unicode__(self):
         return self.__repr__()
 
+class FunctionCall(models.Model):
+    """
+    A model for each function call in a script
+    """
+
+    script = models.ForeignKey(Script, related_name="calls")
+    """Which :class:`Script` the token belongs to"""
+
+    name = models.CharField(max_length=255, default="", blank=True, null=True, db_index=True)
+
+    def __repr__(self):
+        return str(self.script.name) + ": " + self.name
+
+    def __unicode__(self):
+        return self.__repr__()
+
+
 class Token(models.Model):
     """
     A model for each token of a script

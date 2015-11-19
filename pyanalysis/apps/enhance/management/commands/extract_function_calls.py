@@ -4,7 +4,16 @@ import path
 from django.db import transaction
 import ast
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
 class CallCollector(ast.NodeVisitor):
+    '''
+        A class for visiting nodes, copied and modified from
+        http://stackoverflow.com/questions/26014404/how-to-extract-functions-used-in-a-python-code-file
+    '''
     def __init__(self):
         self.calls = []
         self.current = None
@@ -20,7 +29,9 @@ class CallCollector(ast.NodeVisitor):
         if self.current is not None:
             print "warning: {} node in function expression not supported".format(
                 node.__class__.__name__)
+
         super(CallCollector, self).generic_visit(node)
+
 
     # record the func expression
     def visit_Name(self, node):
@@ -39,8 +50,8 @@ class CallCollector(ast.NodeVisitor):
 
 
 class Command(BaseCommand):
-    help = "Live commands with dictionary."
-    args = '<dataset_id> [...]'
+    help = "Extract function calls."
+    args = '<dataset_id>'
 
     def handle(self, dataset_id, **options):
 
@@ -51,19 +62,28 @@ class Command(BaseCommand):
         except ValueError:
             raise CommandError("Dataset id must be a number.")
 
-
-#        from pyanalysis.apps.enhance.models import Dictionary
-#        dictionary = Dictionary.objects.get(dataset_id=dataset_id)
-
-        from pyanalysis.apps.corpus.models import Dataset
+        from pyanalysis.apps.corpus.models import Dataset, FunctionCall
         dataset = Dataset.objects.get(id=dataset_id)
 
-        src = dataset.scripts.all()[0].contents
-        tree = ast.parse(src)
-        cc = CallCollector()
-        cc.visit(tree)
-        print cc.calls
+        with transaction.atomic(savepoint=False):
+            scripts = dataset.scripts.all()
+            for idx, script in enumerate(scripts):
+                logger.info("Processing %d/%d scripts: %s" %(idx + 1, len(scripts), script.name))
+                src = script.contents
+                try:
+                    tree = ast.parse(src)
+                except SyntaxError:
+                    logger.info("Syntax Error")
+                    continue
 
-        import pdb
-        pdb.set_trace()
+                cc = CallCollector()
+                cc.visit(tree)
+                calls = map(lambda x: FunctionCall(script=script, name=x), cc.calls)
+                FunctionCall.objects.bulk_create(calls)
+
+                logger.info("Found %d function calls" %(len(calls)) )
+
+
+
+
 
