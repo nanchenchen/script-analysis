@@ -49,7 +49,10 @@
                 .enter().append("circle")
                     .attr("class", "node")
                     .attr("r", radius)
-                    .on('click', onClicked);
+                    .on('click', function(d){
+                        d.neighbors = d.links; // TODO: remove the ref when defocus
+                        onClicked(d); // call external click function
+                    });
 
                 node.append("title")
                   .text(function(d) { return d.name; });
@@ -116,8 +119,96 @@
             },
             link: link,
             transclude: true,
-            template: '<div class="similarity-graph-render-target"></div>' +
+            template: '<div class="render-target"></div>' +
             '<div ng-transclude></div>'
         }
     });
+
+    module.directive('commonCallGraph', function () {
+
+        var RadialTree = function ($element, attrs, onClicked) {
+
+            var self = this;
+            var $d3_element = d3.select($element[0]);
+            var diameter = 500;
+
+            var tree = d3.layout.tree()
+                .size([360, diameter / 2 - 120])
+                .children(function(d){ return d.neighbors })
+                .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+
+            var diagonal = d3.svg.diagonal.radial()
+                .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+            var svg = $d3_element.append("svg")
+                .attr("width", diameter)
+                .attr("height", diameter - 150)
+              .append("g")
+                .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+
+
+            self.render = function (data) {
+                var nodes = tree.nodes(data);
+                var links = tree.links(nodes);
+
+                var link = svg.selectAll(".link")
+                  .data(links)
+                .enter().append("path")
+                  .attr("class", "link")
+                  .attr("d", diagonal);
+
+                var node = svg.selectAll(".node")
+                  .data(nodes)
+                .enter().append("g")
+                  .attr("class", "node")
+                  .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; });
+
+                node.append("circle")
+                  .attr("r", 4.5);
+
+                node.append("text")
+                  .attr("dy", ".31em")
+                  .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                  .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+                  .text(function(d) { return d.name; });
+            };
+
+
+
+        };
+
+        function link(scope, $element, attrs) {
+            if (!scope._vis) {
+                var vis = scope._vis = new RadialTree($element, attrs, scope.onClicked);
+                scope.$watch('data', function (newVals, oldVals) {
+                    if (newVals){
+                        return vis.render(scope.data);
+                    }
+
+                }, false);
+
+
+            } else {
+                throw("What is this madness");
+            }
+        }
+
+        return {
+            //Use as a tag only
+            restrict: 'E',
+            replace: false,
+
+            //Directive's inner scope
+            scope: {
+                data: '=data',
+                onClicked: '=onClicked'
+            },
+            link: link,
+            transclude: true,
+            template: '<div class="render-target"></div>' +
+            '<div ng-transclude></div>'
+        }
+    });
+
+
 })();

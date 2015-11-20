@@ -42,6 +42,7 @@
 
         $scope.similarity_graph_data = undefined;
         $scope.script = undefined;
+        $scope.focus_node = undefined;
 
         $scope.load = function(){
             var request = SimilarityGraph.load(Dataset.id);
@@ -55,8 +56,10 @@
 
         };
 
+
         $scope.click_node = function(script){
             console.log(script);
+            $scope.focus_node = script;
             var request = Script.load(script.id);
             if (request) {
                 usSpinnerService.spin('code-spinner');
@@ -66,7 +69,7 @@
                     PR.prettyPrint();
                 });
             }
-        }
+        };
 
         // load the similarity graph
         $scope.load();

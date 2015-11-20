@@ -35,8 +35,8 @@
 
     //A service for loading similarity graph.
     module.factory('ScriptBrowser.services.SimilarityGraph', [
-        '$http', 'djangoUrl',
-        function similarityGraphFactory($http, djangoUrl) {
+        '$rootScope', '$http', 'djangoUrl',
+        function similarityGraphFactory($rootScope, $http, djangoUrl) {
 
             var apiUrl = djangoUrl.reverse('similarity-graph');
 
@@ -46,6 +46,19 @@
             };
 
             angular.extend(SimilarityGraph.prototype, {
+                construct_node_links: function(data){
+                    data.nodes.forEach(function(d){
+                        d.links = [];
+                    });
+                    data.links.forEach(function(d){
+                        var src_node = data.nodes[d.source];
+                        var tar_node = data.nodes[d.target];
+                        src_node.links.push(tar_node);
+                        tar_node.links.push(src_node);
+                    });
+                    return data;
+                },
+
                 load: function (dataset) {
                     var self = this;
 
@@ -57,7 +70,7 @@
                     };
                     return $http.get(apiUrl, request)
                         .success(function (data) {
-                            self.data = data;
+                            self.data = self.construct_node_links(data);
                         });
 
                 }
