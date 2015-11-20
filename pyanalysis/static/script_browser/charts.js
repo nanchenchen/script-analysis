@@ -142,7 +142,7 @@
             var diagonal = d3.svg.diagonal()
                 .projection(function(d) { return [d.y, d.x]; });
 
-            var svg = $d3_element.append("div")
+            var svg = $d3_element.append("svg")
                 .attr("width", width + margin.right + margin.left)
                 .attr("height", height + margin.top + margin.bottom)
               .append("g")
