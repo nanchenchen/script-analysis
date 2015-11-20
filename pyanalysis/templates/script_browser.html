@@ -99,6 +99,7 @@
                 <div id="code" class="col-md-6 box fix-height">
                     <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
                     <div ng-hide="script" class="placeholder">Click a node on the left to its contents</div>
+                    <h3 ng-cloak>{$ script.name $}</h3>
                     <code-mirror ng-show="script" lang="py" model="script.contents" ng-cloak></code-mirror>
 
                 </div>

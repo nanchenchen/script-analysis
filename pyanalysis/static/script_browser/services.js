@@ -46,7 +46,16 @@
             };
 
             angular.extend(SimilarityGraph.prototype, {
+                focus_node: function(node){
+                    node.neighbors = node.links;
+                },
+                defocus_node: function(node){
+                    if (node.neighbors) node.neighbors = undefined;
+                    if (node.children) node.children = undefined;
+
+                },
                 construct_node_links: function(data){
+                    var self = this;
                     data.nodes.forEach(function(d){
                         d.links = [];
                     });

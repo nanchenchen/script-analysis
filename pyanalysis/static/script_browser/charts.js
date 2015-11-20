@@ -11,8 +11,8 @@
             var self = this;
             var $d3_element = d3.select($element[0]);
 
-            var width = 700,
-                height = 650,
+            var width = 500,
+                height = 350,
                 radius = 4,
                 padding = 10;
 
@@ -50,7 +50,6 @@
                     .attr("class", "node")
                     .attr("r", radius)
                     .on('click', function(d){
-                        d.neighbors = d.links; // TODO: remove the ref when defocus
                         onClicked(d); // call external click function
                     });
 
@@ -130,21 +129,24 @@
 
             var self = this;
             var $d3_element = d3.select($element[0]);
-            var diameter = 500;
+            var margin = {top: 20, right: 120, bottom: 20, left: 120},
+                width = 600 - margin.right - margin.left,
+                height = 400 - margin.top - margin.bottom;
+
 
             var tree = d3.layout.tree()
-                .size([360, diameter / 2 - 120])
-                .children(function(d){ return d.neighbors })
-                .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+                .size([height, width])
+                .children(function(d){ return d.neighbors });
 
-            var diagonal = d3.svg.diagonal.radial()
-                .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
 
-            var svg = $d3_element.append("svg")
-                .attr("width", diameter)
-                .attr("height", diameter - 150)
+            var diagonal = d3.svg.diagonal()
+                .projection(function(d) { return [d.y, d.x]; });
+
+            var svg = $d3_element.append("div")
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom)
               .append("g")
-                .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 
             self.render = function (data) {
@@ -153,24 +155,42 @@
 
                 var link = svg.selectAll(".link")
                   .data(links)
-                .enter().append("path")
-                  .attr("class", "link")
-                  .attr("d", diagonal);
+                    .attr("d", diagonal);
+
+                link.enter().append("path")
+                  .attr("class", "link");
+
+
+                link.exit().remove();
 
                 var node = svg.selectAll(".node")
                   .data(nodes)
-                .enter().append("g")
-                  .attr("class", "node")
-                  .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; });
+                    .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+                    .each(function(d){
+                        var self = d3.select(this);
+                        self.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+                        self.select('text')
+                          .attr("dx", function(d) { return d.name == data.name ? -8 : 8; })
+                          .attr("dy", 3)
+                          .attr("text-anchor", function(d) { return d.name == data.name ? "end" : "start"; })
+                          .text(function(d) { return d.name; });
+                    });
 
-                node.append("circle")
+                node.exit().remove();
+
+
+                var nodeNg = node.enter().append("g")
+                    .attr("class", "node");
+                  //.attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; });
+
+                nodeNg.append("circle")
                   .attr("r", 4.5);
 
-                node.append("text")
-                  .attr("dy", ".31em")
-                  .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-                  .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
-                  .text(function(d) { return d.name; });
+                nodeNg.append("text");
+
+
+
+
             };
 
 

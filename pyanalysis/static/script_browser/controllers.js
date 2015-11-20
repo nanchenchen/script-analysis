@@ -59,7 +59,11 @@
 
         $scope.click_node = function(script){
             console.log(script);
+            if ($scope.focus_node){
+                SimilarityGraph.defocus_node($scope.focus_node);
+            }
             $scope.focus_node = script;
+            SimilarityGraph.focus_node($scope.focus_node);
             var request = Script.load(script.id);
             if (request) {
                 usSpinnerService.spin('code-spinner');

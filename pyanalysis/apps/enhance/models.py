@@ -162,7 +162,7 @@ class Dictionary(models.Model):
                 document_freq = gdict.dfs[dic_token_index]
 
                 try:
-                    tf = float(dic_token_freq) / float(num_tokens)
+                    tf = float(dic_token_freq)
                     idf = math.log(total_documents / document_freq)
                     tfidf = tf * idf
 

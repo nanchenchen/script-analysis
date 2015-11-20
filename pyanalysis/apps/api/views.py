@@ -31,12 +31,12 @@ class SimilarityGraphView(APIView):
             dataset_id = int(request.query_params.get('id'))
             metric = request.query_params.get('metric')
             threshold = {
-                'consine': 0.1,
+                'cosine': 0.1,
                 'common_calls': 5
             }
 
             if metric is None:
-                metric = "consine"
+                metric = "cosine"
 
             try:
 
