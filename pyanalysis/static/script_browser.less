@@ -77,7 +77,7 @@ body {
     background-color: white;
 }
 .fix-height{
-    height: 700px;
+    height: 450px;
 }
 
 .no-padding{
@@ -121,4 +121,32 @@ common-call-graph{
 #code{
     position: relative;
     overflow-y: auto;
+}
+
+.code-mirror-wrap{
+    pre{
+      max-height: 400px;
+    }
+}
+
+.bottom{
+    white-space: nowrap;
+    overflow: auto;
+    max-height: 220px;
+    max-width: 1300px;
+    margin-top: 20px;
+}
+.script-call{
+    display: inline-block;
+    vertical-align: top;
+}
+.call:hover{
+    cursor: pointer;
+    color: rgba(255, 100, 100, 0.80);
+
+}
+
+.highlight{
+
+    background-color: rgba(255, 100, 100, 0.20);
 }

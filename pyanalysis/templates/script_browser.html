@@ -82,7 +82,7 @@
 
         </div>
         <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptBrowser.controllers.ViewController">
-
+            <div class="row top">
                 <div id="vis" class="col-md-5 box fix-height">
                     <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
 
@@ -91,23 +91,41 @@
                             on-clicked="click_node">
                     </similarity-graph>
 
-                    <common-call-graph
+                    <!--<common-call-graph
                             data="focus_node">
-                    </common-call-graph>
+                    </common-call-graph>-->
                 </div>
 
                 <div id="code" class="col-md-6 box fix-height">
                     <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
-                    <div ng-hide="script" class="placeholder">Click a node on the left to its contents</div>
+                    <div ng-hide="script" class="placeholder">Click a node on the left to show its contents</div>
                     <h3 ng-cloak>{$ script.name $}</h3>
-                    <code-mirror ng-show="script" lang="py" model="script.contents" ng-cloak></code-mirror>
+                    <div class="code-mirror-wrap">
+                        <code-mirror ng-show="script" lang="py" model="script.contents" ng-cloak></code-mirror>
+                    </div>
+
 
                 </div>
             </div>
+            <div class="row bottom">
+                <div class="call_map">
+                    <div class="script-call box">
+                        <strong>{$ focus_node.name $}</strong>
+                        <div class="call"  ng-class="call.name.replace('.', '-')"  ng-repeat="call in focus_node.call_counts" ng-mouseover="highlight(call)" ng-mouseleave="remove_highlight()">
+                            <span class="call_name">{$ call.name $}</span>
+                            <span class="call_count" >{$ call.count $}</span>
+                        </div>
+                    </div>
 
-
-
-
+                    <div class="script-call box neighbor" ng-repeat="neighbor in focus_node.neighbors" ng-click="click_node(neighbor)">
+                        <strong>{$ neighbor.name $}</strong>
+                        <div class="call"  ng-class="call.name.replace('.', '-')" ng-repeat="call in neighbor.call_counts" ng-mouseover="highlight(call)" ng-mouseleave="remove_highlight()">
+                            <span class="call_name">{$ call.name $}</span>
+                            <span class="call_count" >{$ call.count $}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
 </div>

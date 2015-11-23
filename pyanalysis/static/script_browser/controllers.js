@@ -55,7 +55,13 @@
             }
 
         };
-
+        $scope.highlight = function(call){
+            var call_name = call.name.replace('.', '-');
+            $('.' + call_name).addClass('highlight');
+        };
+        $scope.remove_highlight = function(){
+            $('.highlight').removeClass('highlight');
+        };
 
         $scope.click_node = function(script){
             console.log(script);

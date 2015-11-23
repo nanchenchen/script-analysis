@@ -11,12 +11,12 @@
             var self = this;
             var $d3_element = d3.select($element[0]);
 
-            var width = 500,
-                height = 350,
+            var width = 450,
+                height = 400,
                 radius = 4,
                 padding = 10;
 
-            var iteration = 5;
+            var iteration = 50;
 
             var color = d3.scale.category20();
 
@@ -142,7 +142,7 @@
             var diagonal = d3.svg.diagonal()
                 .projection(function(d) { return [d.y, d.x]; });
 
-            var svg = $d3_element.append("svg")
+            var svg = $d3_element.append("div")
                 .attr("width", width + margin.right + margin.left)
                 .attr("height", height + margin.top + margin.bottom)
               .append("g")

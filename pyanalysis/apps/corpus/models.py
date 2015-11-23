@@ -40,7 +40,7 @@ class Script(models.Model):
 
     @property
     def call_counts(self):
-        return self.calls.all().values('name').annotate(count=Count('name')).order_by('-count')
+        return self.calls.exclude(name__isnull=True).values('name').annotate(count=Count('name')).order_by('-count')
 
     def __repr__(self):
         return self.name
