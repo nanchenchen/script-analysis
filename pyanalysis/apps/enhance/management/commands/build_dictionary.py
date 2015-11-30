@@ -19,3 +19,5 @@ class Command(BaseCommand):
 
         from pyanalysis.apps.enhance.tasks import build_script_dictionary
         build_script_dictionary(dataset_id=dataset_id)
+
+
