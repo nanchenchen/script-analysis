@@ -5,7 +5,7 @@ from fields import PositiveBigIntegerField
 from pyanalysis.apps.corpus.models import Dataset, Script
 from gensim.corpora import Dictionary as GensimDictionary
 import gensim.similarities
-
+import ast
 # Create your models here.
 
 # import the logging library
@@ -14,6 +14,37 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+class CallCollector(ast.NodeVisitor):
+    def __init__(self):
+        self.calls = []
+        self.current = None
+
+    def visit_Call(self, node):
+        # new call, trace the function expression
+        self.current = ''
+        self.visit(node.func)
+        self.calls.append(self.current)
+        self.current = None
+
+    def generic_visit(self, node):
+        if self.current is not None:
+            print "warning: {} node in function expression not supported".format(
+                node.__class__.__name__)
+        super(CallCollector, self).generic_visit(node)
+
+    # record the func expression
+    def visit_Name(self, node):
+        if self.current is None:
+            return
+        self.current += node.id
+
+    def visit_Attribute(self, node):
+        if self.current is None:
+            self.generic_visit(node)
+        self.visit(node.value)
+
+        if self.current is not None:
+            self.current += '.' + node.attr
 
 class TokenLoader(object):
     def __init__(self, scripts, *filters):
@@ -34,6 +65,25 @@ class TokenLoader(object):
 
     def tokenize(self, script):
         return map(lambda x: x.text, script.tokens.all())
+
+class CallTokenLoader(TokenLoader):
+
+    def tokenize(self, script):
+        src = script.contents
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            logger.info("Syntax Error")
+            return ["Error"]
+        except:
+            import traceback
+            traceback.print_exc()
+            return ["Error"]
+
+        cc = CallCollector()
+        cc.visit(tree)
+        return filter(lambda x: x is not None, cc.calls)
+
 
 class Dictionary(models.Model):
     dataset = models.ForeignKey(Dataset, related_name="dictionary", null=True, blank=True, default=None)
@@ -124,7 +174,7 @@ class Dictionary(models.Model):
     def _build_gensim_dictionary(cls, dataset, scripts):
         # build a dictionary
         logger.info("Building a dictionary from texts")
-        tokenized_scripts = TokenLoader(dataset.scripts.all())
+        tokenized_scripts = CallTokenLoader(dataset.scripts.all())
         gensim_dict = GensimDictionary(tokenized_scripts)
 
         dict_obj, created = cls.objects.get_or_create(dataset=dataset)
@@ -149,7 +199,7 @@ class Dictionary(models.Model):
         batch_size = 1000
         print_freq = 10000
 
-        tokenized_scripts = TokenLoader(scripts)
+        tokenized_scripts = CallTokenLoader(scripts)
 
         for script in scripts:
 
