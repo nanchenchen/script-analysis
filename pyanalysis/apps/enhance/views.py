@@ -74,7 +74,7 @@ class TopicDetailView(DetailView):
 
         examples = topicvector_class.get_examples(topic=topic)
         if token:
-            examples = examples.filter(script__tokens__text=token)
+            examples = examples.filter(script__dic_tokens__text=token)
 
         context['examples'] = examples[:100].prefetch_related('script')
 

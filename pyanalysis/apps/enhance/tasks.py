@@ -138,15 +138,19 @@ class CallTokenLoader(TokenLoader):
             tree = ast.parse(src)
         except SyntaxError:
             logger.info("Syntax Error")
-            return ["Error"]
+            return []
         except:
             import traceback
             traceback.print_exc()
-            return ["Error"]
+            return []
 
         cc = CallCollector()
         cc.visit(tree)
-        return filter(lambda x: x is not None, cc.calls)
+        result = filter(lambda x: x is not None, cc.calls)
+        for f in self.filters:
+            result = filter(lambda x: x not in f, result)
+
+        return result
 
 
 
@@ -241,7 +245,7 @@ def default_topic_context(name, dataset_id):
     queryset = dataset.scripts.all()
 
     filters = [
-        LambdaWordFilter(lambda word: word == 'None'),
+        LambdaWordFilter(lambda word: word == 'len' or word == 'int'),
        # LambdaWordFilter(lambda word: word.startswith('http') and len(word) > 4)
     ]
 

@@ -160,7 +160,7 @@ class Dictionary(models.Model):
 
         for script in queryset.iterator():
 
-            tokens = tokenizer.tokenize(script)
+            tokens = tokenizer.tokenize(script.contents)
             bow = gdict.doc2bow(tokens)
             num_tokens = len(tokens)
 
@@ -234,7 +234,7 @@ class Dictionary(models.Model):
             topics.append(topicm)
 
             tokens = []
-            for prob, token_text in topic:
+            for token_text, prob in topic:
                 token_index = gdict.token2id[token_text]
                 token_id = self.get_token_id(token_index)
                 tw = TopicDictToken(topic=topicm,
@@ -276,7 +276,7 @@ class Dictionary(models.Model):
 
         # Go through the bows and get their topic mixtures
         for bow in corpus:
-            mixture = lda[bow]
+            mixture = lda.get_document_topics(bow)
             script_id = corpus.current_script_id
 
             for topic_index, prob in mixture:
@@ -375,7 +375,7 @@ class DictToken(models.Model):
 class TopicModel(models.Model):
     dictionary = models.ForeignKey(Dictionary)
 
-    name = models.TextField(default="", blank="")
+    name = models.TextField(default="", blank=True)
     description = models.CharField(max_length=200)
 
     time = models.DateTimeField(auto_now_add=True)
@@ -407,7 +407,7 @@ class TopicModel(models.Model):
 
 class Topic(models.Model):
     model = models.ForeignKey(TopicModel, related_name='topics')
-    name = models.CharField(max_length=100)
+    name = models.TextField(default="", blank=True)
     description = models.CharField(max_length=200)
     index = models.IntegerField()
     alpha = models.FloatField()
