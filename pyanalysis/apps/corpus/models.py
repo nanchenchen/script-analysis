@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.db.models import Count
+from operator import itemgetter
 
 class Dataset(models.Model):
     """A top-level dataset object containing scripts."""
@@ -35,7 +36,7 @@ class Script(models.Model):
     last_modified = models.DateTimeField(default=timezone.now)
 
     @property
-    def text(self):
+    def text    (self):
         return "".join(map(lambda x: x.text, self.lines.all()))
 
     @property
@@ -57,6 +58,19 @@ class Script(models.Model):
 
         return list(common_set)
 
+    def get_lines_with_topics(self, model_id):
+        lines_with_topics = []
+        for line in self.lines:
+            tokens = line.token_vector_elements.all()
+            topics = []
+            for token in tokens:
+                token_topics = token.dic_token.topics.filter(model_id=model_id, scripts=self).all()
+
+                topics.extend(map(lambda x: {'index': x.index, 'probability': x.token_scores.filter(token=token.dic_token)[0].probability}, token_topics))
+            topics = sorted(topics, key=itemgetter('probability'), reverse=True)
+            lines_with_topics.append({'text': line.text, 'topics': topics})
+
+        return lines_with_topics
 
 
 class Line(models.Model):

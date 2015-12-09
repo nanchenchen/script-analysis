@@ -55,7 +55,7 @@
         {% for example in examples %}
             <div class="clearfix">
                 <!--<span class="author">{{ example.script.sender.username }}:</span>-->
-                <span class="title"><a href="{% url 'topics_document' model_id=topic_model.id  document_id=example.script.id %}">{{ example.script.name }}</a></span>
+                <span class="title"><a href="{% url 'model_document' model_id=topic_model.id  document_id=example.script.id %}">{{ example.script.name }}</a></span>
                 <span class="text"><pre class="prettyprint  lang-py">{{ example.script.text }}</pre></span>
 
                 <div class="pull-right">

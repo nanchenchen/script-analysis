@@ -128,4 +128,16 @@ class DocumentDetailView(DetailView):
             topics = sorted(topics, key=itemgetter('probability'), reverse=True)
             lines_with_topics.append({'text': line.text, 'topics': topics})
 
-        context['lines_topics'] = lines_with_topics
+        context['lines_topics'] = document.get_lines_with_topics()
+
+class DocumentListView(ListView):
+    context_object_name = 'model_documents'
+    queryset = models.Script.objects.all()
+    template_name = 'topic_browser/documents.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(DocumentDetailView, self).get_context_data(**kwargs)
+        model_id = self.kwargs.get('model_id')
+        DocumentDetailView.get_document_data(context, model_id=model_id, document=self.object)
+        return context
