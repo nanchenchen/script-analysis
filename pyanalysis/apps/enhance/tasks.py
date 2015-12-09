@@ -57,7 +57,7 @@ class DbTextIterator(object):
             if self.current_position % 10000 == 0:
                 logger.info("Iterating through database texts: item %d" % self.current_position)
 
-            yield script.contents
+            yield script
 
 
 class DbWordVectorIterator(object):
@@ -127,13 +127,13 @@ class TokenLoader(object):
                 continue
             yield tokens
 
-    def tokenize(self, script):
-        return map(lambda x: x.text, script.tokens.all())
+    def tokenize(self, obj):
+        return map(lambda x: x.text, obj.tokens.all())
 
 class CallTokenLoader(TokenLoader):
 
-    def tokenize(self, script):
-        src = script
+    def tokenize(self, obj):
+        src = obj.text
         try:
             tree = ast.parse(src)
         except SyntaxError:

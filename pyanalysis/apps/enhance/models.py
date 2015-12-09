@@ -2,7 +2,7 @@ from django.db import models, transaction
 from django.conf import settings
 
 from fields import PositiveBigIntegerField
-from pyanalysis.apps.corpus.models import Dataset, Script
+from pyanalysis.apps.corpus.models import Dataset, Script, Line
 from gensim.corpora import Dictionary as GensimDictionary
 import gensim.similarities
 
@@ -159,45 +159,46 @@ class Dictionary(models.Model):
 #        tokenized_scripts = tokenizer(scripts)
 
         for script in queryset.iterator():
+            for line in script.lines.all():
+                tokens = tokenizer.tokenize(line)
+                bow = gdict.doc2bow(tokens)
+                num_tokens = len(tokens)
 
-            tokens = tokenizer.tokenize(script.contents)
-            bow = gdict.doc2bow(tokens)
-            num_tokens = len(tokens)
+                for dic_token_index, dic_token_freq in bow:
+                    dic_token_id = self.get_token_id(dic_token_index)
+                    document_freq = gdict.dfs[dic_token_index]
 
-            for dic_token_index, dic_token_freq in bow:
-                dic_token_id = self.get_token_id(dic_token_index)
-                document_freq = gdict.dfs[dic_token_index]
+                    try:
+                        tf = float(dic_token_freq)
+                        idf = math.log(total_documents / document_freq)
+                        tfidf = tf * idf
 
-                try:
-                    tf = float(dic_token_freq)
-                    idf = math.log(total_documents / document_freq)
-                    tfidf = tf * idf
+                    except:
+                        import pdb
+                        pdb.set_trace()
 
-                except:
-                    import pdb
-                    pdb.set_trace()
+                    batch.append(TokenVectorElement(
+                                             dictionary=self,
+                                             dic_token_id=dic_token_id,
+                                             dic_token_index=dic_token_index,
+                                             frequency=dic_token_freq,
+                                             tfidf=tfidf,
+                                             line=line,
+                                             script=script))
+                count += 1
 
-                batch.append(TokenVectorElement(
-                                         dictionary=self,
-                                         dic_token_id=dic_token_id,
-                                         dic_token_index=dic_token_index,
-                                         frequency=dic_token_freq,
-                                         tfidf=tfidf,
-                                         script=script))
-            count += 1
+                if len(batch) > batch_size:
+                    TokenVectorElement.objects.bulk_create(batch)
+                    batch = []
 
-            if len(batch) > batch_size:
-                TokenVectorElement.objects.bulk_create(batch)
-                batch = []
+                    if settings.DEBUG:
+                        # prevent memory leaks
+                        from django.db import connection
 
-                if settings.DEBUG:
-                    # prevent memory leaks
-                    from django.db import connection
+                        connection.queries = []
 
-                    connection.queries = []
-
-            if count % print_freq == 0:
-                logger.info("Saved token-vectors for %d / %d documents" % (count, total_count))
+                if count % print_freq == 0:
+                    logger.info("Saved token-vectors for %d / %d documents" % (count, total_count))
 
         if len(batch):
             TokenVectorElement.objects.bulk_create(batch)
@@ -440,7 +441,7 @@ class ScriptTopic(models.Model):
 
     @classmethod
     def get_examples(cls, topic):
-        examples = cls.objects.filter(topic=topic)
+        examples = cls.objects.filter(topic=topic, probability__gte=0.5).distinct()
         return examples.order_by('-probability')
 
 
@@ -449,6 +450,7 @@ class TokenVectorElement(models.Model):
 
     script = models.ForeignKey(Script, related_name="token_vector_elements")
     dic_token = models.ForeignKey(DictToken, related_name="token_vector_elements")
+    line = models.ForeignKey(Line, related_name="token_vector_elements", default=None, null=True, blank=True)
 
     frequency = models.IntegerField(default=0)
     dic_token_index = models.IntegerField(default=0)

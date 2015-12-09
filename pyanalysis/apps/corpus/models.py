@@ -35,7 +35,7 @@ class Script(models.Model):
     last_modified = models.DateTimeField(default=timezone.now)
 
     @property
-    def contents(self):
+    def text(self):
         return "".join(map(lambda x: x.text, self.lines.all()))
 
     @property

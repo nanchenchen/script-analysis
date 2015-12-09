@@ -1,0 +1,47 @@
+{% extends '_layouts/base.html' %}
+
+{% load static %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'topic_browser/js/shade_tokens.js' %}"></script>
+{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'topic_browser/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'topic_browser/css/topic_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+
+    <ol class="breadcrumb">
+        <li><a href="{% url 'topics_models' %}">Models</a></li>
+        <li><a href="{% url 'topics_model' model_id=model_id %}">Model</a></li>
+        <li class="active">Details</li>
+    </ol>
+
+    <h1>Topic {{ topic.index }}</h1>
+    <p class="lead">in model <em>{{ topic_model.name }}</em></p>
+
+
+    <h2>Document {{ document.name }}
+    </h2>
+
+    <div class="examples">
+        {% for line in lines_topics %}
+            <div class="clearfix">
+                <!--<span class="author">{{ example.script.sender.username }}:</span>-->
+                <span class="text">{{ line.text }}</span>
+                {% for topic in line.topics %}
+                <div class="pull-right">
+                    <span class="time">{{ topic.index }}</span>
+                    <span class="probability">Prob for topic: {{ topic.probability|floatformat:5 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+
+{% endblock %}

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
+from operator import itemgetter
 import models
 
 # Create your views here.
@@ -76,7 +77,7 @@ class TopicDetailView(DetailView):
         if token:
             examples = examples.filter(script__dic_tokens__text=token)
 
-        context['examples'] = examples[:100].prefetch_related('script')
+        context['examples'] = examples[:20].prefetch_related('script')
 
 
 
@@ -93,3 +94,38 @@ class TopicDictTokenDetailView(DetailView):
         topictoken = self.object
         TopicDetailView.get_topic_data(context, topic=self.object.topic, token=topictoken.token.text)
         return context
+
+
+
+class DocumentDetailView(DetailView):
+    pk_url_kwarg = 'document_id'
+    context_object_name = 'document'
+    model = models.Script
+    template_name = 'topic_browser/document_detail.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(DocumentDetailView, self).get_context_data(**kwargs)
+        model_id = self.kwargs.get('model_id')
+        DocumentDetailView.get_document_data(context, model_id=model_id, document=self.object)
+        return context
+
+    @classmethod
+    def get_document_data(cls, context, model_id, document, topic=None):
+        context['document'] = document
+        context['topic'] = topic
+        context['topic_model'] = models.TopicModel.objects.get(id=model_id)
+        context['model_id'] = model_id
+        lines = document.lines.all()
+        lines_with_topics = []
+        for line in lines:
+            tokens = line.token_vector_elements.all()
+            topics = []
+            for token in tokens:
+                token_topics = token.dic_token.topics.filter(model_id=model_id, scripts=document).all()
+
+                topics.extend(map(lambda x: {'index': x.index, 'probability': x.token_scores.filter(token=token.dic_token)[0].probability}, token_topics))
+            topics = sorted(topics, key=itemgetter('probability'), reverse=True)
+            lines_with_topics.append({'text': line.text, 'topics': topics})
+
+        context['lines_topics'] = lines_with_topics

@@ -2,15 +2,23 @@
 
 {% load static %}
 
-{% block javascript %}
+{% block js %}
     {{ block.super }}
-    <script src="{% static 'topic_browser/js/shade_tokens.js' %}"></script>
+    <script src="{% static 'topic_browser/js/shade_words.js' %}"></script>
+    <script src="{% static 'google-code-prettify/prettify.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            prettyPrint();
+        });
+
+    </script>
 {% endblock %}
 
 {% block css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'topic_browser/css/base.css' %}">
     <link rel="stylesheet" href="{% static 'topic_browser/css/topic_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'google-code-prettify/atelier-forest-light.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -43,11 +51,12 @@
         {% if token %}containing <strong>"{{ token }}"</strong>{% endif %}
     </h2>
 
-    <div class="examples">
+    <div class="examples" >
         {% for example in examples %}
             <div class="clearfix">
                 <!--<span class="author">{{ example.script.sender.username }}:</span>-->
-                <span class="text"><pre>{{ example.script.contents }}</pre></span>
+                <span class="title"><a href="{% url 'topics_document' model_id=topic_model.id  document_id=example.script.id %}">{{ example.script.name }}</a></span>
+                <span class="text"><pre class="prettyprint  lang-py">{{ example.script.text }}</pre></span>
 
                 <div class="pull-right">
                     <span class="time">{{ example.script.created_at }}</span>
