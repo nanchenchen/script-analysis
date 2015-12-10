@@ -27,10 +27,25 @@
 
             var svg = $d3_element.append("svg")
                 .attr("width", width)
-                .attr("height", height);
+                .attr("height", height)
+                .append("g")
+                    .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom))
+                .append("g");
+
+            function zoom() {
+              var trans=d3.event.translate;
+              var scale=d3.event.scale;
+
+              svg.attr("transform",
+                  "translate(" + trans + ")"
+                  + " scale(" + scale + ")");
+            }
+
+            svg.on("dblclick.zoom", null);
 
 
             self.render = function (data) {
+
                 force
                   .nodes(data.nodes)
                   .links(data.links);
@@ -57,10 +72,10 @@
                   .text(function(d) { return d.name; });
 
                 force.on("tick", function() {
-                    node.attr("cx", function(d) { return d.x = Math.max(radius + padding, Math.min(width - radius - padding, d.x)); })
-                        .attr("cy", function(d) { return d.y = Math.max(radius + padding, Math.min(height - radius - padding, d.y)); });
-                //node.attr("cx", function(d) { return d.x; })
-                //    .attr("cy", function(d) { return d.y; });
+                //    node.attr("cx", function(d) { return d.x = Math.max(radius + padding, Math.min(width - radius - padding, d.x)); })
+                //        .attr("cy", function(d) { return d.y = Math.max(radius + padding, Math.min(height - radius - padding, d.y)); });
+                    node.attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
 
                     link.attr("x1", function(d) { return d.source.x; })
                         .attr("y1", function(d) { return d.source.y; })

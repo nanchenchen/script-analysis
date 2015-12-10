@@ -22,7 +22,7 @@ class SimilarityGraphView(APIView):
     """
     Get similarity pairs
 
-    **Request:** ``GET /api/similarity/id=1``
+    **Request:** ``GET /api/similarity/?id=1``
     """
 
 
@@ -37,6 +37,9 @@ class SimilarityGraphView(APIView):
 
             if metric is None:
                 metric = "cosine"
+
+            if request.query_params.get('threshold'):
+                threshold[metric] = float(request.query_params.get('threshold'))
 
             try:
 
@@ -64,6 +67,47 @@ class SimilarityGraphView(APIView):
 
 
                 output = serializers.SimilarityGraphSerializer(results)
+
+                return Response(output.data, status=status.HTTP_200_OK)
+
+            except:
+                import traceback
+                traceback.print_exc()
+                return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)
+
+class ScriptComparatorView(APIView):
+    """
+    Get similarity pairs
+
+    **Request:** ``GET /api/comparator/?id=1&src_id=237&tar_id=241``
+    """
+
+
+    def get(self, request, format=None):
+        if request.query_params.get('id') and request.query_params.get('src_id') and request.query_params.get('tar_id'):
+            dataset_id = request.query_params.get('id')
+            src_id = request.query_params.get('src_id')
+            tar_id = request.query_params.get('tar_id')
+
+
+            try:
+
+                dataset = corpus_models.Dataset.objects.get(id=dataset_id)
+                source = dataset.scripts.get(id=src_id)
+                target = dataset.scripts.get(id=tar_id)
+
+                import difflib
+                diff = "\n".join(difflib.unified_diff(source.text.split('\n'), target.text.split('\n'), fromfile=source.name, tofile=target.name))
+
+                results = {
+                    "source": source,
+                    "target": target,
+                    "diff": diff}
+
+
+                output = serializers.ScriptComparatorSerializer(results)
 
                 return Response(output.data, status=status.HTTP_200_OK)
 

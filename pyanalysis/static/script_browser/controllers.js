@@ -6,6 +6,7 @@
         'ScriptBrowser.services',
         'angularSpinner',
         'ng-code-mirror',
+        'angularResizable',
         'angucomplete-alt'
     ]);
 
@@ -93,6 +94,61 @@
         'usSpinnerService'
     ];
     module.controller('ScriptBrowser.controllers.ViewController', ViewController);
+
+    var ComparatorController = function ($scope, Dataset, SimilarityPairs, Comparator, usSpinnerService) {
+
+        $scope.spinnerOptions = {
+            radius: 20,
+            width: 6,
+            length: 10,
+            color: "#000000"
+        };
+
+        $scope.similarity_pairs = undefined;
+        $scope.source = undefined;
+        $scope.target = undefined;
+        $scope.diff = undefined;
+
+        $scope.load = function(){
+            var request = SimilarityPairs.load(Dataset.id, 'cosine', 0.9);
+            if (request) {
+                usSpinnerService.spin('vis-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('vis-spinner');
+                    $scope.similarity_pairs = SimilarityPairs.data;
+                });
+            }
+
+        };
+
+        // load the similarity pairs
+        $scope.load();
+
+        $scope.click_pair = function(src_id, tar_id){
+
+            var request = Comparator.load(Dataset.id, src_id, tar_id);
+            if (request) {
+                usSpinnerService.spin('code-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('code-spinner');
+                    $scope.source = Comparator.data.source;
+                    $scope.target = Comparator.data.target;
+                    $scope.diff = Comparator.data.diff;
+
+                    PR.prettyPrint();
+                });
+            }
+        };
+
+    };
+    ComparatorController.$inject = [
+        '$scope',
+        'ScriptBrowser.services.Dataset',
+        'ScriptBrowser.services.SimilarityPairs',
+        'ScriptBrowser.services.Comparator',
+        'usSpinnerService'
+    ];
+    module.controller('ScriptBrowser.controllers.ComparatorController', ComparatorController);
 
 
     module.directive('datetimeFormat', function() {

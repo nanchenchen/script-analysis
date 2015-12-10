@@ -74,9 +74,9 @@
                     var request = {
                         params: {
                             id: dataset
-
                         }
                     };
+
                     return $http.get(apiUrl, request)
                         .success(function (data) {
                             self.data = self.construct_node_links(data);
@@ -86,6 +86,53 @@
             });
 
             return new SimilarityGraph();
+        }
+    ]);
+
+    //A service for loading similarity pairs.
+    module.factory('ScriptBrowser.services.SimilarityPairs', [
+        '$rootScope', '$http', 'djangoUrl',
+        function similarityGraphFactory($rootScope, $http, djangoUrl) {
+
+            var apiUrl = djangoUrl.reverse('similarity-graph');
+
+            var SimilarityPairs = function () {
+                var self = this;
+                self.data = undefined;
+            };
+
+            angular.extend(SimilarityPairs.prototype, {
+
+                convert_links: function(data){
+                    var self = this;
+
+                    data.links.forEach(function(d){
+                        d.source = data.nodes[d.source];
+                        d.target = data.nodes[d.target];
+                    });
+                    return data.links;
+                },
+
+                load: function (dataset, metric, threshold) {
+                    var self = this;
+
+                    var request = {
+                        params: {
+                            id: dataset
+                        }
+                    };
+                    if (metric) request.params.metric = metric;
+                    if (threshold) request.params.threshold = threshold;
+
+                    return $http.get(apiUrl, request)
+                        .success(function (data) {
+                            self.data = self.convert_links(data);
+                        });
+
+                }
+            });
+
+            return new SimilarityPairs();
         }
     ]);
 
@@ -120,6 +167,41 @@
             });
 
             return new Script();
+        }
+    ]);
+
+    //A service for loading script comparator.
+    module.factory('ScriptBrowser.services.Comparator', [
+        '$http', 'djangoUrl',
+        function scriptFactory($http, djangoUrl) {
+
+            var apiUrl = djangoUrl.reverse('comparator');
+
+            var Comparator = function () {
+                var self = this;
+                self.data = undefined;
+            };
+
+            angular.extend(Comparator.prototype, {
+                load: function (dataset_id, src_id, tar_id) {
+                    var self = this;
+
+                    var request = {
+                        params: {
+                            id: dataset_id,
+                            src_id: src_id,
+                            tar_id: tar_id
+                        }
+                    };
+                    return $http.get(apiUrl, request)
+                        .success(function (data) {
+                            self.data = data;
+                        });
+
+                }
+            });
+
+            return new Comparator();
         }
     ]);
 

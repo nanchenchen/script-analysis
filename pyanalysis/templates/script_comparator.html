@@ -15,6 +15,8 @@
 
 <link rel="stylesheet" href="{% static 'google-code-prettify/atelier-forest-light.css' %}">
 <link rel="stylesheet" href="{% static 'script_browser.less' %}" type="text/less">
+
+<link rel="stylesheet" href="{% static 'bower/angular-resizable/angular-resizable.min.css' %}" type="text/css">
 {% endblock %}
 
 {% block js %}
@@ -39,6 +41,7 @@
 
 <script src="{% static 'bower/spin.js/spin.js' %}"></script>
 <script src="{% static 'bower/angular-spinner/angular-spinner.js' %}"></script>
+<script src="{% static 'bower/angular-resizable/angular-resizable.min.js' %}"></script>
     
 <script src="{% static 'bower/moment/moment.js' %}"></script>
 <script src="{% static 'bower/d3/d3.js' %}"></script>
@@ -75,57 +78,62 @@
         <div id="titleWrap" class="row clearfix"  ng-controller="ScriptBrowser.controllers.DatasetController" ng-cloak="">
 
              <div class="logo-titles">
-                 <span class="title">Script Similarity Graph Browser</span>
-                 <span class="description"> A similarity-graph based browser for scripts</span>
+                 <span class="title">Script Comparator</span>
+                 <span class="description"> A view for comparing similar scripts</span>
                  <span class="dataset">{$ Dataset.description $} ({$ Dataset.count $} scripts)</span>
              </div>
 
         </div>
-        <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptBrowser.controllers.ViewController">
-            <div class="row top">
-                <div id="vis" class="col-md-5 box fix-height">
+        <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptBrowser.controllers.ComparatorController">
+            <div class="row">
+                <div class="list col box full-height" resizable r-directions="['right']" r-flex="true">
                     <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
+                    <table>
+                    <tbody ng-repeat="pair in similarity_pairs" ng-click="click_pair(pair.source.id, pair.target.id)" ng-cloak="">
 
-                    <similarity-graph
-                            data="similarity_graph_data"
-                            on-clicked="click_node">
-                    </similarity-graph>
+                            <tr>
+                                <td>{$ pair.source.name $}</td>
+                                <td class="similarity" rowspan="2">{$ pair.similarity | number:2 $}</td>
+                            </tr>
+                            <tr>
+                                <td>{$ pair.target.name $}</td>
+                            </tr>
 
-                    <!--<common-call-graph
-                            data="focus_node">
-                    </common-call-graph>-->
+                    </tbody>
+                    </table>
+
                 </div>
 
-                <div id="code" class="col-md-6 box fix-height">
+                <div class="code col box full-height" resizable r-directions="['right']" r-flex="true">
                     <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
-                    <div ng-hide="script" class="placeholder">Click a node on the left to show its contents</div>
-                    <h3 ng-cloak>{$ script.name $}</h3>
+                    <div ng-hide="source" class="placeholder">Click a pair on the left to show its contents</div>
+                    <h4 ng-cloak>{$ source.name $}</h4>
                     <div class="code-mirror-wrap">
-                        <code-mirror ng-show="script" lang="py" model="script.text" ng-cloak></code-mirror>
-                    </div>
-
-
-                </div>
-            </div>
-            <div class="row bottom">
-                <div class="call_map">
-                    <div class="script-call box">
-                        <strong>{$ focus_node.name $}</strong>
-                        <div class="call"  ng-class="call.name.replace('.', '-')"  ng-repeat="call in focus_node.call_counts" ng-mouseover="highlight(call)" ng-mouseleave="remove_highlight()">
-                            <span class="call_name">{$ call.name $}</span>
-                            <span class="call_count" >{$ call.count $}</span>
-                        </div>
-                    </div>
-
-                    <div class="script-call box neighbor" ng-repeat="neighbor in focus_node.neighbors" ng-click="click_node(neighbor)">
-                        <strong>{$ neighbor.name $}</strong>
-                        <div class="call"  ng-class="call.name.replace('.', '-')" ng-repeat="call in neighbor.call_counts" ng-mouseover="highlight(call)" ng-mouseleave="remove_highlight()">
-                            <span class="call_name">{$ call.name $}</span>
-                            <span class="call_count" >{$ call.count $}</span>
-                        </div>
+                        <code-mirror ng-show="source" lang="py" model="source.text" line-numbers="true" ng-cloak></code-mirror>
                     </div>
                 </div>
+
+                <div class="code col box full-height" resizable r-directions="['right']" r-flex="true">
+                    <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
+                    <div ng-hide="target" class="placeholder">Click a pair on the left to show its contents</div>
+                    <h4 ng-cloak>{$ target.name $}</h4>
+                    <div class="code-mirror-wrap">
+                        <code-mirror ng-show="target" lang="py" model="target.text" line-numbers="true" ng-cloak></code-mirror>
+                    </div>
+                </div>
+
+                <div class="code col box full-height" resizable r-directions="['right']" r-flex="true">
+                    <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
+                    <div ng-hide="diff" class="placeholder">Click a pair on the left to show its contents</div>
+                    <h4 ng-show="diff" ng-cloak>Diff</h4>
+                    <div class="code-mirror-wrap">
+                        <code-mirror ng-show="diff" lang="py" model="diff" ng-cloak></code-mirror>
+                    </div>
+                </div>
+
+
             </div>
+
 
         </div>
 </div>
