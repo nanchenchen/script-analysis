@@ -36,7 +36,7 @@ class Script(models.Model):
     last_modified = models.DateTimeField(default=timezone.now)
 
     @property
-    def text    (self):
+    def text(self):
         return "".join(map(lambda x: x.text, self.lines.all()))
 
     @property
@@ -60,7 +60,7 @@ class Script(models.Model):
 
     def get_lines_with_topics(self, model_id):
         lines_with_topics = []
-        for line in self.lines:
+        for line in self.lines.all():
             tokens = line.token_vector_elements.all()
             topics = []
             for token in tokens:

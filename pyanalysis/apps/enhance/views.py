@@ -116,28 +116,23 @@ class DocumentDetailView(DetailView):
         context['topic'] = topic
         context['topic_model'] = models.TopicModel.objects.get(id=model_id)
         context['model_id'] = model_id
-        lines = document.lines.all()
-        lines_with_topics = []
-        for line in lines:
-            tokens = line.token_vector_elements.all()
-            topics = []
-            for token in tokens:
-                token_topics = token.dic_token.topics.filter(model_id=model_id, scripts=document).all()
-
-                topics.extend(map(lambda x: {'index': x.index, 'probability': x.token_scores.filter(token=token.dic_token)[0].probability}, token_topics))
-            topics = sorted(topics, key=itemgetter('probability'), reverse=True)
-            lines_with_topics.append({'text': line.text, 'topics': topics})
-
-        context['lines_topics'] = document.get_lines_with_topics()
+        context['lines_topics'] = document.get_lines_with_topics(model_id=model_id)
 
 class DocumentListView(ListView):
     context_object_name = 'model_documents'
-    queryset = models.Script.objects.all()
+
     template_name = 'topic_browser/documents.html'
+
+    def get_queryset(self, **kwargs):
+        model_id = self.kwargs.get('model_id')
+        queryset = models.Script.objects.filter(topic_probabilities__topic_model__id=model_id).distinct().order_by('id')
+        scripts = map(lambda x: {'name': x.name, 'lines_with_topics': x.get_lines_with_topics(model_id=model_id)}, queryset[:10])
+
+        return scripts
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(DocumentDetailView, self).get_context_data(**kwargs)
+        context = super(DocumentListView, self).get_context_data(**kwargs)
         model_id = self.kwargs.get('model_id')
-        DocumentDetailView.get_document_data(context, model_id=model_id, document=self.object)
+        context['model_id'] = model_id
         return context
