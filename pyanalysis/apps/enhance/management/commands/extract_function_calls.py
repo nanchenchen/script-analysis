@@ -69,7 +69,7 @@ class Command(BaseCommand):
             scripts = dataset.scripts.all()
             for idx, script in enumerate(scripts):
                 logger.info("Processing %d/%d scripts: %s" %(idx + 1, len(scripts), script.name))
-                src = script.contents
+                src = script.text
                 try:
                     tree = ast.parse(src)
                 except SyntaxError:

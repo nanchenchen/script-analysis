@@ -327,7 +327,8 @@ class Dictionary(models.Model):
 
         for script in scripts:
             script_id_list.append(script.id)
-            results.append(map(lambda x: x.to_tuple(use_tfidf), script.token_vector_elements.all()))
+            tokens = map(lambda x: x.to_tuple(use_tfidf), script.token_vector_elements.all())
+            results.append(filter(lambda x: x[1] > 0, tokens))
 
         return script_id_list, results
 
