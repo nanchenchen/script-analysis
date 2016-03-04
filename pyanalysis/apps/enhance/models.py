@@ -2,10 +2,11 @@ from django.db import models, transaction
 from django.conf import settings
 
 from fields import PositiveBigIntegerField
-from pyanalysis.apps.corpus.models import Dataset, Script, Line
 from gensim.corpora import Dictionary as GensimDictionary
 import gensim.similarities
 
+from pyanalysis.apps.corpus.models import Dataset, Script, Line
+from pyanalysis.apps.enhance.tokenizers import *
 
 # Create your models here.
 
