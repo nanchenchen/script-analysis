@@ -42,10 +42,11 @@ class Command(BaseCommand):
 
 
         if action == 'all' or action == 'lda':
+            import gensim
             id2word=dictionary.gensim_dictionary
             script_ids, m = dictionary.load_sparse_matrix()
-            lda = gensim.models.ldamodel.LdaModel(corpus=m, id2word=id2word, num_topics=10)
-            lda.print_topics(20)
+            lda = gensim.models.ldamodel.LdaModel(corpus=m, id2word=id2word, num_topics=10, iterations=500)
+            lda.print_topics(10)
 
 
         if action == 'all' or action == 'kmean':

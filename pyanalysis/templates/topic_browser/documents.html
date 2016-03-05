@@ -1,0 +1,55 @@
+{% extends '_layouts/base.html' %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'topic_browser/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'topic_browser/css/documents.css' %}">
+    <link rel="stylesheet" href="{% static 'google-code-prettify/atelier-forest-light.css' %}">
+{% endblock %}
+{% block js %}
+    <script src="{% static 'google-code-prettify/prettify.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            prettyPrint();
+        });
+
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('.line').mouseover(function(){
+                $('.highlight').removeClass('highlight');
+                var topics = $(this).attr('class').split(' ');
+                topics.forEach(function(d){
+                    if (d != 'line' && d != "" && d != "topic"){
+                        $('.' + d).addClass('highlight');
+                    }
+                });
+            });
+            $('.line').mouseout(function() {
+                $('.highlight').removeClass('highlight');
+            });
+        });
+    </script>
+{% endblock %}
+{% block content %}
+
+    <ol class="breadcrumb">
+        <li class="active">Document Overview with Model {{ model_id }}</li>
+    </ol>
+    {% for doc in model_documents %}
+        <div>
+            <strong>{{ doc.name }}</strong>
+            <div class="code">
+            {% for line in doc.lines_with_topics %}
+                {% if line.topics %}
+                <div class="line topic {% for t in line.topics %}t{{ t.index }}{% endfor %}">{{ line.text }}</div>
+                {% else %}
+                <div class="line">{{ line.text }}</div>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+{% endblock %}

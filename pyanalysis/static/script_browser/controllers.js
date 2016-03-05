@@ -6,6 +6,7 @@
         'ScriptBrowser.services',
         'angularSpinner',
         'ng-code-mirror',
+        'angularResizable',
         'angucomplete-alt'
     ]);
 
@@ -42,6 +43,7 @@
 
         $scope.similarity_graph_data = undefined;
         $scope.script = undefined;
+        $scope.focus_node = undefined;
 
         $scope.load = function(){
             var request = SimilarityGraph.load(Dataset.id);
@@ -54,9 +56,21 @@
             }
 
         };
+        $scope.highlight = function(call){
+            var call_name = call.name.replace('.', '-');
+            $('.' + call_name).addClass('highlight');
+        };
+        $scope.remove_highlight = function(){
+            $('.highlight').removeClass('highlight');
+        };
 
         $scope.click_node = function(script){
             console.log(script);
+            if ($scope.focus_node){
+                SimilarityGraph.defocus_node($scope.focus_node);
+            }
+            $scope.focus_node = script;
+            SimilarityGraph.focus_node($scope.focus_node);
             var request = Script.load(script.id);
             if (request) {
                 usSpinnerService.spin('code-spinner');
@@ -66,7 +80,7 @@
                     PR.prettyPrint();
                 });
             }
-        }
+        };
 
         // load the similarity graph
         $scope.load();
@@ -80,6 +94,61 @@
         'usSpinnerService'
     ];
     module.controller('ScriptBrowser.controllers.ViewController', ViewController);
+
+    var ComparatorController = function ($scope, Dataset, SimilarityPairs, Comparator, usSpinnerService) {
+
+        $scope.spinnerOptions = {
+            radius: 20,
+            width: 6,
+            length: 10,
+            color: "#000000"
+        };
+
+        $scope.similarity_pairs = undefined;
+        $scope.source = undefined;
+        $scope.target = undefined;
+        $scope.diff = undefined;
+
+        $scope.load = function(){
+            var request = SimilarityPairs.load(Dataset.id, 'cosine', 0.9);
+            if (request) {
+                usSpinnerService.spin('vis-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('vis-spinner');
+                    $scope.similarity_pairs = SimilarityPairs.data;
+                });
+            }
+
+        };
+
+        // load the similarity pairs
+        $scope.load();
+
+        $scope.click_pair = function(src_id, tar_id){
+
+            var request = Comparator.load(Dataset.id, src_id, tar_id);
+            if (request) {
+                usSpinnerService.spin('code-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('code-spinner');
+                    $scope.source = Comparator.data.source;
+                    $scope.target = Comparator.data.target;
+                    $scope.diff = Comparator.data.diff;
+
+                    PR.prettyPrint();
+                });
+            }
+        };
+
+    };
+    ComparatorController.$inject = [
+        '$scope',
+        'ScriptBrowser.services.Dataset',
+        'ScriptBrowser.services.SimilarityPairs',
+        'ScriptBrowser.services.Comparator',
+        'usSpinnerService'
+    ];
+    module.controller('ScriptBrowser.controllers.ComparatorController', ComparatorController);
 
 
     module.directive('datetimeFormat', function() {

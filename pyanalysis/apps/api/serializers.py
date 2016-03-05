@@ -21,12 +21,12 @@ class ScriptSerializer(serializers.ModelSerializer):
 
 class ScriptContentSerializer(serializers.ModelSerializer):
 
-    contents = serializers.CharField(required=True)
+    text = serializers.CharField(required=True)
 
     class Meta:
         model = corpus_models.Script
-        fields = ('id', 'name', 'contents', )
-        read_only_fields = ('id', 'name', 'contents', )
+        fields = ('id', 'name', 'text', )
+        read_only_fields = ('id', 'name', 'text', )
 
 
 class SimilaritySerializer(serializers.Serializer):
@@ -40,4 +40,8 @@ class SimilarityGraphSerializer(serializers.Serializer):
     nodes = ScriptSerializer(many=True)
     links = SimilaritySerializer(many=True)
 
+class ScriptComparatorSerializer(serializers.Serializer):
+    source = ScriptContentSerializer()
+    target = ScriptContentSerializer()
+    diff = serializers.CharField()
 

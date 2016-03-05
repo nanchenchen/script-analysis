@@ -77,6 +77,9 @@ body {
     background-color: white;
 }
 .fix-height{
+    height: 450px;
+}
+.full-height{
     height: 700px;
 }
 
@@ -98,8 +101,101 @@ similarity-graph{
     height: 100%;
 }
 
+common-call-graph{
+    .node circle {
+      fill: #fff;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+    }
+
+    .node {
+      font: 10px sans-serif;
+    }
+
+    .link {
+      fill: none;
+      stroke: #ccc;
+      stroke-width: 1.5px;
+    }
+
+}
+
 
 #code{
     position: relative;
     overflow-y: auto;
+    .code-mirror-wrap{
+        pre{
+          max-height: 400px;
+        }
+    }
+}
+
+
+.bottom{
+    white-space: nowrap;
+    overflow: auto;
+    max-height: 220px;
+    max-width: 1300px;
+    margin-top: 20px;
+}
+.script-call{
+    display: inline-block;
+    vertical-align: top;
+}
+.call:hover{
+    cursor: pointer;
+    color: rgba(255, 100, 100, 0.80);
+
+}
+
+.highlight{
+
+    background-color: rgba(255, 100, 100, 0.20);
+}
+
+.flex-row {
+    flex: 1;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.col {
+    position: relative;
+    flex: 1 100px;
+    flex-grow: 1;
+
+
+}
+
+
+
+.code{
+    width: 25%;
+    .code-mirror-wrap{
+        height: 650px;
+        overflow-y: auto;
+    }
+}
+.list{
+    overflow-y: auto;
+    width: 20%;
+    table{
+        border-collapse: collapse;
+    }
+    td {
+        margin: 5px;
+    }
+    tbody {
+        border: 5px white solid;
+    }
+    tr:nth-child(even) {
+        background-color: rgba(255, 197, 71, 0.20);
+    }
+    tr:nth-child(odd) {
+        background-color: rgba(36, 181, 255, 0.20);
+    }
+    .similarity{
+        background-color: rgba(169, 255, 0, 0.2);
+    }
 }
