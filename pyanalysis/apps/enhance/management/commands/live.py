@@ -1,41 +1,6 @@
 from django.core.management.base import BaseCommand, make_option, CommandError
-from time import time
-import path
-from django.db import transaction
 import ast
-
-class CallCollector(ast.NodeVisitor):
-    def __init__(self):
-        self.calls = []
-        self.current = None
-
-    def visit_Call(self, node):
-        # new call, trace the function expression
-        self.current = ''
-        self.visit(node.func)
-        self.calls.append(self.current)
-        self.current = None
-
-    def generic_visit(self, node):
-        if self.current is not None:
-            print "warning: {} node in function expression not supported".format(
-                node.__class__.__name__)
-        super(CallCollector, self).generic_visit(node)
-
-    # record the func expression
-    def visit_Name(self, node):
-        if self.current is None:
-            return
-        self.current += node.id
-
-    def visit_Attribute(self, node):
-        if self.current is None:
-            self.generic_visit(node)
-        self.visit(node.value)
-
-        if self.current is not None:
-            self.current += '.' + node.attr
-
+from pyanalysis.apps.enhance.analyses import VariableCollector
 
 
 class Command(BaseCommand):
@@ -58,11 +23,11 @@ class Command(BaseCommand):
         from pyanalysis.apps.corpus.models import Dataset
         dataset = Dataset.objects.get(id=dataset_id)
 
-        src = dataset.scripts.all()[0].contents
+        src = dataset.scripts.all()[0].text
         tree = ast.parse(src)
-        cc = CallCollector()
+        cc = VariableCollector()
         cc.visit(tree)
-        print cc.calls
+        print cc.variables
 
         import pdb
         pdb.set_trace()

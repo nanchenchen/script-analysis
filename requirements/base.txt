@@ -39,3 +39,6 @@ textblob
 
 # Twitter API Auth
 oauth2
+
+# code analysis
+astor
