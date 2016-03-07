@@ -12,7 +12,7 @@
             var $d3_element = d3.select($element[0]);
 
             var width = 800,
-                height = 800,
+                height = 600,
                 radius = 4,
                 padding = 10;
 
@@ -58,7 +58,7 @@
                   .translate([(svg.attr("width") - graph.graph().width * initialScale) / 2, 20])
                   .scale(initialScale)
                   .event(svg);
-                svg.attr('height', height * initialScale + 40);
+                svg.attr('height', height - padding * 2);
 
             }
 
