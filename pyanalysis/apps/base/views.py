@@ -85,7 +85,7 @@ class GrouperView(LoginRequiredMixin, generic.DetailView):
 
 
 
-class ScriptBrowserView(generic.DetailView):
+class ScriptBrowserView(LoginRequiredMixin, generic.DetailView):
     """The view for the visualization tool."""
 
     template_name = 'script_browser.html'
@@ -117,7 +117,7 @@ class ScriptBrowserView(generic.DetailView):
         return obj
 
 
-class ScriptComparatorView(generic.DetailView):
+class ScriptComparatorView(LoginRequiredMixin, generic.DetailView):
     """The view for the visualization tool."""
 
     template_name = 'script_comparator.html'
@@ -148,7 +148,7 @@ class ScriptComparatorView(generic.DetailView):
                           {'verbose_name': queryset.model._meta.verbose_name})
         return obj
 
-class ScriptVarGraphView(generic.DetailView):
+class ScriptVarGraphView(LoginRequiredMixin, generic.DetailView):
     """The view for the visualization tool."""
 
     template_name = 'script_vargraph.html'
