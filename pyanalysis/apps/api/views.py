@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 
 from pyanalysis.apps.corpus import models as corpus_models
 from pyanalysis.apps.enhance import models as enhance_models
+from pyanalysis.apps.enhance.analyses import get_script_var_graph, convert_format
 from pyanalysis.apps.api import serializers
 
 import json
@@ -143,6 +144,33 @@ class ScriptContentView(APIView):
 
         return Response("Please specify script id", status=status.HTTP_400_BAD_REQUEST)
 
+class ScriptVariableGraphView(APIView):
+    """
+    Get similarity pairs
+
+    **Request:** ``GET /api/vargraph?id=1``
+    """
+
+
+    def get(self, request, format=None):
+        if request.query_params.get('id'):
+            script_id = int(request.query_params.get('id'))
+            try:
+
+                script = corpus_models.Script.objects.get(id=script_id)
+                variables = get_script_var_graph(script.text)
+                output = convert_format(variables)
+                output["name"] = script.name
+                output["text"] = script.text
+
+                return Response(output, status=status.HTTP_200_OK)
+
+            except:
+                import traceback
+                traceback.print_exc()
+                return Response("Script not exist", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response("Please specify script id", status=status.HTTP_400_BAD_REQUEST)
 
 class DatasetView(APIView):
     """

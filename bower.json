@@ -28,6 +28,7 @@
     "c3": "https://github.com/hds-lab/c3.git#2174d050f",
     "angular-spinner": "~0.6.1",
     "angular-code-mirror": "0.0.3",
-    "angular-resizable": "1.2.0"
+    "angular-resizable": "1.2.0",
+    "dagre-d3": "0.4.17"
   }
 }

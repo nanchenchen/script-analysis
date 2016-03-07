@@ -1,0 +1,127 @@
+{% extends '_layouts/base.html' %}
+{% load staticfiles djangular_tags %}
+
+{% block page_title %}ScriptVarGraph{% endblock %}
+
+{% block meta %}
+<meta name="twitter:widgets:csp" content="on">
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'theme.less' %}" type="text/less">
+<link rel="stylesheet" href="{% static 'style.less' %}" type="text/less">
+<link rel="stylesheet" href="{% static 'bower/c3/c3.css' %}">
+<link rel="stylesheet" href="{% static 'script_vargraph.less' %}" type="text/less">
+
+<link rel="stylesheet" href="{% static 'google-code-prettify/atelier-forest-light.css' %}">
+<link rel="stylesheet" href="{% static 'script_vargraph.less' %}" type="text/less">
+
+<link rel="stylesheet" href="{% static 'bower/angular-resizable/angular-resizable.min.css' %}" type="text/css">
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+
+<script src="{% static 'bower/angular/angular.js' %}"></script>
+<script src="{% static 'bower/angular-cookies/angular-cookies.js' %}"></script>
+<script src="{% static 'bower/angular-route/angular-route.js' %}"></script>
+<script src="{% static 'bower/angular-resource/angular-resource.js' %}"></script>
+<script src="{% static 'bower/angular-animate/angular-animate.js' %}"></script>
+<script src="{% static 'bower/angular-sanitize/angular-sanitize.js' %}"></script>
+<script src="{% static 'bower/angucomplete-alt/angucomplete-alt.js' %}"></script>
+
+<script src="{% static 'bower/jquery-ui/ui/core.js' %}"></script>
+<script src="{% static 'bower/jquery-ui/ui/widget.js' %}"></script>
+<script src="{% static 'bower/jquery-ui/ui/mouse.js' %}"></script>
+<script src="{% static 'bower/jquery-ui/ui/draggable.js' %}"></script>
+<script src="{% static 'bower/jquery-ui/ui/droppable.js' %}"></script>
+<script src="{% static 'bower/angular-dragdrop/src/angular-dragdrop.js' %}"></script>
+
+<script src="{% static 'djangular/js/django-angular.js' %}"></script>
+
+<script src="{% static 'bower/spin.js/spin.js' %}"></script>
+<script src="{% static 'bower/angular-spinner/angular-spinner.js' %}"></script>
+<script src="{% static 'bower/angular-resizable/angular-resizable.min.js' %}"></script>
+    
+<script src="{% static 'bower/moment/moment.js' %}"></script>
+<script src="{% static 'bower/d3/d3.js' %}"></script>
+<script src="{% static 'bower/c3/c3.js' %}"></script>
+<script src="{% static 'bower/lodash/lodash.js' %}"></script>
+<script src="{% static 'bower/graphlib/dist/graphlib.core.js' %}"></script>
+<script src="{% static 'bower/dagre/dist/dagre.core.js' %}"></script>
+<script src="{% static 'bower/dagre-d3/dist/dagre-d3.core.js' %}"></script>
+
+<script src="{% static 'script_vargraph/app.js' %}"></script>
+<script src="{% static 'script_vargraph/services.js' %}"></script>
+<script src="{% static 'script_vargraph/controllers.js' %}"></script>
+<script src="{% static 'script_vargraph/charts.js' %}"></script>
+
+<script src="{% static 'bower/angular-code-mirror/dist/angular-code-mirror.js' %}"></script>
+
+
+{% endblock %}
+
+{% block navigation_bar %}
+{% endblock %}
+
+{% block bootstrapping %}
+{{ block.super }}
+<script>
+    angular.module('ng.django.urls')
+        .constant('patterns', {% load_djng_urls %});
+
+    angular.module('ScriptVarGraph.bootstrap')
+            .constant('ScriptVarGraph.bootstrap.dataset', {{ object.dataset.pk }})
+            .constant('ScriptVarGraph.bootstrap.script', {{ object.pk }});
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div ng-app="ScriptVarGraph" id="application" class="container-fluid" >
+        <div id="titleWrap" class="row clearfix"  ng-controller="ScriptVarGraph.controllers.DatasetController" ng-cloak="">
+
+             <div class="logo-titles">
+                 <span class="title">Script Variable Graph</span>
+                 <span class="description"> A view for showing variables relation in a script</span>
+                 <span class="dataset">{$ Dataset.description $} ({$ Dataset.count $} scripts)</span>
+             </div>
+
+        </div>
+        <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptVarGraph.controllers.ViewController">
+            <div class="row top">
+                <div id="vis" class="col-md-5 box fix-height">
+                    <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
+
+                    <var-graph
+                            data="script_data">
+                    </var-graph>
+
+                    <!--<common-call-graph
+                            data="focus_node">
+                    </common-call-graph>-->
+                </div>
+
+                <div id="code" class="col-md-6 box fix-height">
+                    <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
+                    <div ng-hide="script_data" class="placeholder">Click a node on the left to show its contents</div>
+                    <h3 ng-cloak>{$ script_data.name $}</h3>
+                    <div class="code-mirror-wrap">
+                        <code-mirror ng-show="script_data" lang="py" model="script_data.text" ng-cloak></code-mirror>
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="row bottom">
+
+            </div>
+
+
+        </div>
+</div>
+
+{% endblock %}
+{% block footer %}
+{% endblock %}
