@@ -42,6 +42,7 @@
         };
         $scope.current_script_id = undefined;
         $scope.script_data = undefined;
+        $scope.current_type = undefined;
 
         $scope.set_current_script_id = function(script_id){
             $scope.current_script_id = script_id;
@@ -61,11 +62,12 @@
 
         $scope.$watch('current_script_id', function (newVals, oldVals){
             if (newVals && (newVals != oldVals)){
+                $scope.current_type = undefined;
                 $scope.load_vargraph(newVals);
             }
         });
 
-        $scope.current_type = undefined;
+
 
         $scope.highlight_class = function(){
             return ($scope.current_type) ? $scope.current_type : "";
