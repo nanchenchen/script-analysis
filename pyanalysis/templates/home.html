@@ -4,7 +4,12 @@
 <div class="container">
     <h1>Visual Analytics on Script Analysis</h1>
 
-    <p><a class="btn btn-primary" href="{% url 'script_vargraph' %}">Go to Variable Graph</a></p>
+    <ul>
+    {% for script in object.script_list %}
+    <li><a href="{% url 'script_vargraph' script.id %}">{{ script.name }}</a></li>
+    {% endfor %}
+    </ul>
+
     <p><a href="{% url 'django.contrib.auth.views.logout' %}">Logout</a></p>
 </div>
 {% endblock %}

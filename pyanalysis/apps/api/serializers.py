@@ -4,11 +4,12 @@ from pyanalysis.apps.enhance import models as enhance_models
 
 
 class DatasetSerializer(serializers.ModelSerializer):
+    script_list = serializers.ListField(child=serializers.DictField())
 
     class Meta:
         model = corpus_models.Dataset
-        fields = ('id', 'name', 'description', 'count',  )
-        read_only_fields = ('id', 'name', 'description', 'count', )
+        fields = ('id', 'name', 'description', 'count', 'script_list', )
+        read_only_fields = ('id', 'name', 'description', 'count', 'script_list', )
 
 
 class ScriptSerializer(serializers.ModelSerializer):

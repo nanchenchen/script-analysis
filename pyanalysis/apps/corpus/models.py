@@ -22,6 +22,10 @@ class Dataset(models.Model):
     def count(self):
         return self.scripts.count()
 
+    @property
+    def script_list(self):
+        return [{"id": x.id, "name": x.name} for x in self.scripts.all()]
+
 
 class Script(models.Model):
     """
