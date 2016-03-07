@@ -8,11 +8,13 @@ class Variable(object):
         self.original_name = original_name
         self.in_nodes = []
         self.out_nodes = []
+        self.lines = []
 
     def to_dict(self):
         return {
             "name": self.name,
-            "original_name": self.original_name
+            "original_name": self.original_name,
+            "lines": self.lines
         }
 
 class ObjectVariable(Variable):
@@ -23,6 +25,7 @@ class ObjectVariable(Variable):
     def extend_from_variable(self, var):
         self.in_nodes = var.in_nodes
         self.out_nodes = var.out_nodes
+        self.lines = var.lines
 
 
 class VariableCollector(ast.NodeVisitor):
@@ -61,7 +64,7 @@ class VariableCollector(ast.NodeVisitor):
                 "var": var
             }
         else:
-            new_var_name = "%s_%d" % (var_name, self.var_rename_map[var_name]["count"] + 1)
+            new_var_name = "%s_%d*" % (var_name, self.var_rename_map[var_name]["count"] + 1)
             cls = var_item["var"].__class__
             try:
                 var = cls(name=new_var_name, original_name=var_name)
@@ -94,6 +97,8 @@ class VariableCollector(ast.NodeVisitor):
             var_name = src[:idx]
             obj_var = self.get_obj_var(var_name)
             var = self.get_var(src)
+            obj_var.lines.append(node.lineno)
+            var.lines.append(node.lineno)
             if obj_var.children.get(src) is None:
                 obj_var.children[src] = var
         return var
@@ -150,11 +155,13 @@ class VariableCollector(ast.NodeVisitor):
                 for param_var in params:
                     var.in_nodes.append({
                         "lineno": node.lineno,
-                        "node": param_var
+                        "node": param_var,
+                        "type": "call"
                     })
                     param_var.out_nodes.append({
                         "lineno": node.lineno,
-                        "node": var
+                        "node": var,
+                        "type": "call"
                     })
 
     def visit_Assign(self, node):
@@ -183,11 +190,13 @@ class VariableCollector(ast.NodeVisitor):
             for value_var in value:
                 target_var.in_nodes.append({
                     "lineno": node.lineno,
-                    "node": value_var
+                    "node": value_var,
+                    "type": "assignment"
                 })
                 value_var.out_nodes.append({
                     "lineno": node.lineno,
-                    "node": target_var
+                    "node": target_var,
+                    "type": "assignment"
                 })
 
     # record the var name
@@ -203,6 +212,7 @@ class VariableCollector(ast.NodeVisitor):
                 var = self.get_var(node.id)
 
             if var:
+                var.lines.append(node.lineno)
                 self.current_variable_list.append(var)
 
     def generic_visit(self, node):
@@ -240,7 +250,7 @@ def convert_format(variables):
                 "source": src_id,
                 "target": tar_id,
                 "line_no": line_no,
-                "type": "dependency"
+                "type": out_node["type"]
             }
             links.append(link)
 

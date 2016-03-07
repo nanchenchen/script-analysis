@@ -84,8 +84,9 @@ body {
     border: 0px solid #e3e3e3;
     background-color: white;
 }
+@fix-height: 600px;
 .fix-height{
-    height: 600px;
+    height: @fix-height;
 }
 .full-height{
     height: 700px;
@@ -128,13 +129,109 @@ common-call-graph{
 
 }
 
+@assignment-color: #ffafd5;
+@call-color: #8ee2ff;
+@scope-color: #86e18b;
+#vis{
+    #legends {
+        .legend{
+                display: inline-block;
+            .color {
+                width: 10px;
+                height: 10px;
+                display: inline-block;
+                margin-right: 5px;
+            }
+            .assignment {
+               background: @assignment-color;
+            }
+            .call {
+                background: @call-color;
+            }
+            .scope {
+                background: @scope-color;
+            }
+        }
+    }
+    g.node:hover {
+        cursor: pointer;
+        rect {
+            fill: rgb(255, 222, 223);
+        }
 
+    }
+    .active {
+        fill: rgb(255, 241, 184);
+    }
+    g.edgePath {
+        &.clickable{
+            path {
+                stroke-width: 2.5px;
+            }
+            &:hover {
+              cursor: pointer;
+              path{
+                  stroke: #ccc;
+                  fill: #ccc;
+              }
+
+          }
+        }
+
+
+        &.assignment {
+            path {
+                fill: @assignment-color;
+                stroke: @assignment-color;
+            }
+        }
+        &.call {
+            path {
+                fill: @call-color;
+                stroke: @call-color;
+            }
+        }
+        &.scope {
+            path {
+                fill: @scope-color;
+                stroke: @scope-color;
+            }
+        }
+
+    }
+}
 #code{
     position: relative;
-    overflow-y: auto;
     .code-mirror-wrap{
+        height: @fix-height - 100px;
+        overflow-y: auto;
+        .index {
+            display: inline-block;
+            line-height: 1.5em;
+            font-family: Menlo, Consolas, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, monospace
+        }
         pre{
-          max-height: 500px;
+            max-height: 500px;
+            background: none !important;;
+            margin: 0 !important;;
+            padding: 2px 5px !important;;
+            border: none !important;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }
+    .active {
+        &.node {
+          background: rgb(255, 241, 184);
+        }
+        &.assignment {
+           background: @assignment-color;
+        }
+        &.call {
+            background: @call-color;
+        }
+        &.scope {
+            background: @scope-color;
         }
     }
 }
@@ -146,66 +243,6 @@ common-call-graph{
     max-height: 220px;
     max-width: 1300px;
     margin-top: 20px;
-}
-.script-call{
-    display: inline-block;
-    vertical-align: top;
-}
-.call:hover{
-    cursor: pointer;
-    color: rgba(255, 100, 100, 0.80);
-
-}
-
-.highlight{
-
-    background-color: rgba(255, 100, 100, 0.20);
-}
-
-.flex-row {
-    flex: 1;
-    display: flex;
-    flex-flow: row nowrap;
-}
-
-.col {
-    position: relative;
-    flex: 1 100px;
-    flex-grow: 1;
-
-
-}
-
-
-
-.code{
-    width: 25%;
-    .code-mirror-wrap{
-        height: 650px;
-        overflow-y: auto;
-    }
-}
-.list{
-    overflow-y: auto;
-    width: 20%;
-    table{
-        border-collapse: collapse;
-    }
-    td {
-        margin: 5px;
-    }
-    tbody {
-        border: 5px white solid;
-    }
-    tr:nth-child(even) {
-        background-color: rgba(255, 197, 71, 0.20);
-    }
-    tr:nth-child(odd) {
-        background-color: rgba(36, 181, 255, 0.20);
-    }
-    .similarity{
-        background-color: rgba(169, 255, 0, 0.2);
-    }
 }
 
 /* This sets the color for "TK" nodes to a light blue green. */

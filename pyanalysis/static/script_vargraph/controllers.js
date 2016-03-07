@@ -58,38 +58,23 @@
             }
 
         };
-        $scope.highlight = function(call){
-            var call_name = call.name.replace('.', '-');
-            $('.' + call_name).addClass('highlight');
-        };
-        $scope.remove_highlight = function(){
-            $('.highlight').removeClass('highlight');
-        };
 
         $scope.$watch('current_script_id', function (newVals, oldVals){
             if (newVals && (newVals != oldVals)){
                 $scope.load_vargraph(newVals);
             }
         });
-/*
-        $scope.click_node = function(script){
-            console.log(script);
-            if ($scope.focus_node){
-                SimilarityGraph.defocus_node($scope.focus_node);
-            }
-            $scope.focus_node = script;
-            SimilarityGraph.focus_node($scope.focus_node);
-            var request = Script.load(script.id);
-            if (request) {
-                usSpinnerService.spin('code-spinner');
-                request.then(function() {
-                    usSpinnerService.stop('code-spinner');
-                    $scope.script = Script.data;
-                    PR.prettyPrint();
-                });
-            }
+
+        $scope.current_type = undefined;
+
+        $scope.highlight_class = function(){
+            return ($scope.current_type) ? $scope.current_type : "";
         };
-        */
+
+        $scope.onClicked = function(type){
+            $scope.current_type = type;
+            $scope.$apply();
+        };
 
 
 

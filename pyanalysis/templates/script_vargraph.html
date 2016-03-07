@@ -104,9 +104,15 @@
 
                     <div id="vis" class="col-md-5 box fix-height">
                         <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
+                        <div id="legends">
+                            <div class="legend"><span class="color assignment"></span>assignment</div>
+                            <div class="legend"><span class="color call"></span>call</div>
+                            <div class="legend"><span class="color scope"></span>scope</div>
+                        </div>
 
                         <var-graph
-                                data="script_data">
+                                data="script_data"
+                                on-clicked="onClicked">
                         </var-graph>
 
                         <!--<common-call-graph
@@ -119,7 +125,11 @@
                         <div ng-hide="current_script_id" class="placeholder">Click a node on the left to show its contents</div>
                         <h3 ng-cloak>{$ script_data.name $}</h3>
                         <div class="code-mirror-wrap">
-                            <code-mirror ng-show="current_script_id" lang="py" model="script_data.text" ng-cloak></code-mirror>
+                            <div id="line_{$ $index + 1 $}" class="line" ng-class="highlight_class()"
+                                 ng-repeat="line in script_data.text.split('\n') track by $index">
+                                <div class="index">{$ $index + 1$}.</div>
+                                <code-mirror ng-show="current_script_id" lang="py" model="line" ng-cloak></code-mirror>
+                            </div>
                         </div>
 
 
