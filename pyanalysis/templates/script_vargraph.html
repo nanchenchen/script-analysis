@@ -14,7 +14,6 @@
 <link rel="stylesheet" href="{% static 'script_vargraph.less' %}" type="text/less">
 
 <link rel="stylesheet" href="{% static 'google-code-prettify/atelier-forest-light.css' %}">
-<link rel="stylesheet" href="{% static 'script_vargraph.less' %}" type="text/less">
 
 <link rel="stylesheet" href="{% static 'bower/angular-resizable/angular-resizable.min.css' %}" type="text/css">
 {% endblock %}
@@ -71,19 +70,18 @@
         .constant('patterns', {% load_djng_urls %});
 
     angular.module('ScriptVarGraph.bootstrap')
-            .constant('ScriptVarGraph.bootstrap.dataset', {{ object.dataset.pk }})
-            .constant('ScriptVarGraph.bootstrap.script', {{ object.pk }});
+            .constant('ScriptVarGraph.bootstrap.dataset', {{ object.pk }})
 </script>
 
 {% endblock %}
 
 {% block content %}
 
-<div ng-app="ScriptVarGraph" id="application" class="container-fluid" >
-        <div id="titleWrap" class="row clearfix"  ng-controller="ScriptVarGraph.controllers.DatasetController" ng-cloak="">
+<div ng-app="ScriptVarGraph" id="application" class="container-fluid" ng-controller="ScriptVarGraph.controllers.DatasetController" ng-cloak="">
+        <div id="titleWrap" class="row clearfix"  >
 
              <div class="logo-titles">
-                 <a href="{% url 'home' %}"><span class="title">Script Variable Graph</span></a>
+                 <span class="title">Script Variable Graph</span>
                  <span class="description"> A view for showing variables relation in a script</span>
                  <span class="dataset">{$ Dataset.description $} ({$ Dataset.count $} scripts)</span>
              </div>
@@ -91,28 +89,43 @@
         </div>
         <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptVarGraph.controllers.ViewController">
             <div class="row top">
-                <div id="vis" class="col-md-5 box fix-height">
-                    <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
-
-                    <var-graph
-                            data="script_data">
-                    </var-graph>
-
-                    <!--<common-call-graph
-                            data="focus_node">
-                    </common-call-graph>-->
+                <div id="list" class="box col-md-12 fix-height scroll" ng-hide="current_script_id">
+                    <ol>
+                        <li ng-repeat="script in Dataset.script_list" ng-click="set_current_script_id(script.id)">
+                            <a href="#">{$ script.name $}</a>
+                        </li>
+                    </ol>
                 </div>
+                <div ng-show="current_script_id">
+                    <button class="btn btn-success" ng-click="set_current_script_id(False)">Go back to the script list</button>
+                </div>
+                <br />
+                <div ng-show="current_script_id">
 
-                <div id="code" class="col-md-6 box fix-height">
-                    <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
-                    <div ng-hide="script_data" class="placeholder">Click a node on the left to show its contents</div>
-                    <h3 ng-cloak>{$ script_data.name $}</h3>
-                    <div class="code-mirror-wrap">
-                        <code-mirror ng-show="script_data" lang="py" model="script_data.text" ng-cloak></code-mirror>
+                    <div id="vis" class="col-md-5 box fix-height">
+                        <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
+
+                        <var-graph
+                                data="script_data">
+                        </var-graph>
+
+                        <!--<common-call-graph
+                                data="focus_node">
+                        </common-call-graph>-->
                     </div>
 
+                    <div id="code" class="col-md-6 box fix-height">
+                        <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
+                        <div ng-hide="current_script_id" class="placeholder">Click a node on the left to show its contents</div>
+                        <h3 ng-cloak>{$ script_data.name $}</h3>
+                        <div class="code-mirror-wrap">
+                            <code-mirror ng-show="current_script_id" lang="py" model="script_data.text" ng-cloak></code-mirror>
+                        </div>
 
+
+                    </div>
                 </div>
+
             </div>
             <div class="row bottom">
 

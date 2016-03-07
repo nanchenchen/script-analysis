@@ -40,11 +40,15 @@
             length: 10,
             color: "#000000"
         };
-
+        $scope.current_script_id = undefined;
         $scope.script_data = undefined;
 
-        $scope.load_vargraph = function(){
-            var request = Script.load_vargraph();
+        $scope.set_current_script_id = function(script_id){
+            $scope.current_script_id = script_id;
+        };
+
+        $scope.load_vargraph = function(script_id){
+            var request = Script.load_vargraph(script_id);
             if (request) {
                 usSpinnerService.spin('vis-spinner');
                 request.then(function() {
@@ -61,6 +65,12 @@
         $scope.remove_highlight = function(){
             $('.highlight').removeClass('highlight');
         };
+
+        $scope.$watch('current_script_id', function (newVals, oldVals){
+            if (newVals && (newVals != oldVals)){
+                $scope.load_vargraph(newVals);
+            }
+        });
 /*
         $scope.click_node = function(script){
             console.log(script);
@@ -81,8 +91,7 @@
         };
         */
 
-        // load the script
-        $scope.load_vargraph();
+
 
     };
     ViewController.$inject = [

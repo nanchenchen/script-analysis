@@ -35,8 +35,7 @@
     //A service for loading script contents.
     module.factory('ScriptVarGraph.services.Script', [
         '$http', 'djangoUrl',
-        'ScriptVarGraph.bootstrap.script',
-        function scriptFactory($http, djangoUrl, script_id) {
+        function scriptFactory($http, djangoUrl) {
 
 
 
@@ -47,7 +46,7 @@
             };
 
             angular.extend(Script.prototype, {
-                load: function () {
+                load: function (script_id) {
                     var self = this;
                     var apiUrl = djangoUrl.reverse('script');
 
@@ -62,7 +61,7 @@
                         });
 
                 },
-                load_vargraph: function () {
+                load_vargraph: function (script_id) {
                     var self = this;
                     var apiUrl = djangoUrl.reverse('vargraph');
 

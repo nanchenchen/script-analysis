@@ -11,8 +11,8 @@
             var self = this;
             var $d3_element = d3.select($element[0]);
 
-            var width = 650,
-                height = 400,
+            var width = 800,
+                height = 800,
                 radius = 4,
                 padding = 10;
 

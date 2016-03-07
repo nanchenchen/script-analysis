@@ -12,5 +12,5 @@ urlpatterns = patterns('',
                      #  url(r'^grouper(?:/(?P<dataset_pk>\d+))?/$', views.GrouperView.as_view(), name='grouper'),
                     url(r'^script_browser(?:/(?P<dataset_pk>\d+))?/$', views.ScriptBrowserView.as_view(), name='script_browser'),
                     url(r'^script_comparator(?:/(?P<dataset_pk>\d+))?/$', views.ScriptComparatorView.as_view(), name='script_comparator'),
-                    url(r'^script_vargraph(?:/(?P<script_pk>\d+))?/$', views.ScriptVarGraphView.as_view(), name='script_vargraph'),
+                    url(r'^script_vargraph(?:/(?P<dataset_pk>\d+))?/$', views.ScriptVarGraphView.as_view(), name='script_vargraph'),
 )

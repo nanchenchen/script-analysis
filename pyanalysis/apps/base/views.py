@@ -14,35 +14,10 @@ class LoginRequiredMixin(object):
         view = super(LoginRequiredMixin, cls).as_view(**initkwargs)
         return login_required(view)
 
-class HomeView(LoginRequiredMixin, generic.DetailView):
+class HomeView(LoginRequiredMixin, generic.TemplateView):
     """The homepage view for the website."""
 
     template_name = 'home.html'
-    pk_url_kwarg = 'dataset_pk'
-    default_dataset_pk = 1
-
-    def get_queryset(self):
-        return corpus_models.Dataset.objects.all()
-
-
-    def get_object(self, queryset=None):
-
-        if queryset is None:
-            queryset = self.get_queryset()
-
-        pk = self.kwargs.get(self.pk_url_kwarg, None)
-        if pk is None:
-            pk = self.default_dataset_pk
-
-        queryset = queryset.filter(pk=pk)
-
-        try:
-            # Get the single item from the filtered queryset
-            obj = queryset.get()
-        except queryset.model.DoesNotExist:
-            raise Http404(_("No %(verbose_name)s found matching the query") %
-                          {'verbose_name': queryset.model._meta.verbose_name})
-        return obj
 
 
 class ExplorerView(generic.DetailView):
@@ -178,11 +153,11 @@ class ScriptVarGraphView(LoginRequiredMixin, generic.DetailView):
 
     template_name = 'script_vargraph.html'
 
-    pk_url_kwarg = 'script_pk'
-    default_script_pk = 1
+    pk_url_kwarg = 'dataset_pk'
+    default_dataset_pk = 1
 
     def get_queryset(self):
-        return corpus_models.Script.objects.all()
+        return corpus_models.Dataset.objects.all()
 
 
     def get_object(self, queryset=None):
@@ -192,7 +167,7 @@ class ScriptVarGraphView(LoginRequiredMixin, generic.DetailView):
 
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         if pk is None:
-            pk = self.default_script_pk
+            pk = self.default_dataset_pk
 
         queryset = queryset.filter(pk=pk)
 
