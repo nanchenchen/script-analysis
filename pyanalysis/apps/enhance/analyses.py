@@ -37,6 +37,7 @@ class VariableCollector(ast.NodeVisitor):
         self.current_old_mode = None
         self.current_mode = None
         self.current_variable_list = []
+        self.value = []
 
         self._setup_sys_argv() # TODO: better handle importing and func def
 
@@ -169,6 +170,15 @@ class VariableCollector(ast.NodeVisitor):
 
         self.is_collecting_var = True
         self.current_old_mode = self.current_mode
+        self.current_mode = "value"
+        self.current_variable_list = []
+        self.visit(node.value)
+        self.value = self.current_variable_list
+        self.current_mode = self.current_old_mode
+        self.is_collecting_var = False
+
+        self.is_collecting_var = True
+        self.current_old_mode = self.current_mode
         self.current_mode = "targets"
         self.current_variable_list = []
         for target in node.targets:
@@ -177,17 +187,10 @@ class VariableCollector(ast.NodeVisitor):
         self.current_mode = self.current_old_mode
         self.is_collecting_var = False
 
-        self.is_collecting_var = True
-        self.current_old_mode = self.current_mode
-        self.current_mode = "value"
-        self.current_variable_list = []
-        self.visit(node.value)
-        value = self.current_variable_list
-        self.current_mode = self.current_old_mode
-        self.is_collecting_var = False
+
 
         for target_var in targets:
-            for value_var in value:
+            for value_var in self.value:
                 target_var.in_nodes.append({
                     "lineno": node.lineno,
                     "node": value_var,
@@ -204,8 +207,14 @@ class VariableCollector(ast.NodeVisitor):
         if self.is_collecting_var:
             var = None
             if self.current_mode == "targets":
-                var_item = self.add_var_item(node.id)
-                var = var_item["var"]
+                if self.is_exist(node.id):
+                    var = self.get_var(node.id)
+                    if var not in self.value:
+                        var_item = self.add_var_item(node.id)
+                        var = var_item["var"]
+                else:
+                    var_item = self.add_var_item(node.id)
+                    var = var_item["var"]
             elif self.current_mode == "value" or self.current_mode == "params":
                 var = self.get_var(node.id)
             elif self.current_mode == "func" and self.is_exist(node.id):

@@ -32,7 +32,7 @@
     ];
     module.controller('ScriptVarGraph.controllers.DatasetController', DatasetController);
 
-    var ViewController = function ($scope, Dataset, Script, usSpinnerService) {
+    var ViewController = function ($scope, $location, Dataset, Script, usSpinnerService) {
 
         $scope.spinnerOptions = {
             radius: 20,
@@ -78,11 +78,19 @@
             $scope.$apply();
         };
 
+        // The back button will go back to the list
+        $scope.$on('$locationChangeStart', function(event) {
+            event.preventDefault();
+            window.history.forward();
+            $scope.current_script_id = undefined;
+            $scope.$apply();
 
+        });
 
     };
     ViewController.$inject = [
         '$scope',
+        '$location',
         'ScriptVarGraph.services.Dataset',
         'ScriptVarGraph.services.Script',
         'usSpinnerService'
