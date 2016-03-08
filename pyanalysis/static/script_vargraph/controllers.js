@@ -83,7 +83,6 @@
             event.preventDefault();
             window.history.forward();
             $scope.current_script_id = undefined;
-            $scope.$apply();
 
         });
 
