@@ -134,8 +134,19 @@
                     $scope.source = Comparator.data.source;
                     $scope.target = Comparator.data.target;
                     $scope.diff = Comparator.data.diff;
+                    $scope.note = Comparator.data.note;
 
                     PR.prettyPrint();
+                });
+            }
+        };
+
+        $scope.update_note = function(){
+            var request = Comparator.update_note($scope.source.id, $scope.target.id, $scope.note);
+            if (request) {
+                usSpinnerService.spin('note-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('note-spinner');
                 });
             }
         };

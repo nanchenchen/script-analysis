@@ -468,3 +468,12 @@ class SimilarityPair(models.Model):
     similarity = models.FloatField(default=0.0)
 
 
+class DifferenceNote(models.Model):
+    src_script = models.ForeignKey(Script, related_name="difference_notes")
+    tar_script = models.ForeignKey(Script)
+    note = models.TextField(default="", blank=True)
+
+    class Meta:
+        index_together = (
+            "src_script", "tar_script"
+        )

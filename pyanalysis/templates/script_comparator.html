@@ -130,6 +130,11 @@
                         <code-mirror ng-show="diff" lang="py" model="diff" ng-cloak></code-mirror>
                     </div>
                 </div>
+                <div ng-show="diff" class="code col box full-height" resizable r-directions="['right']" r-flex="true">
+                    <span us-spinner="spinnerOptions" spinner-key="note-spinner"></span>
+                    <h4 ng-cloak>Note</h4>
+                    <textarea ng-model="note" class="note" ng-blur="update_note()"></textarea>
+                </div>
 
 
             </div>

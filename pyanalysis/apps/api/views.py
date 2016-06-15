@@ -102,11 +102,18 @@ class ScriptComparatorView(APIView):
                 import difflib
                 diff = "\n".join(difflib.unified_diff(source.text.split('\n'), target.text.split('\n'), fromfile=source.name, tofile=target.name))
 
+                note = ""
+                note_obj = enhance_models.DifferenceNote.objects.filter(src_script=source,
+                                                                        tar_script=target).first()
+                if note_obj:
+                    note = note_obj.note
+
                 results = {
                     "source": source,
                     "target": target,
-                    "diff": diff}
-
+                    "diff": diff,
+                    "note": note
+                }
 
                 output = serializers.ScriptComparatorSerializer(results)
 
@@ -118,6 +125,28 @@ class ScriptComparatorView(APIView):
                 return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
 
         return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)
+
+
+    def post(self, request, format=None):
+        input = serializers.DifferenceNoteSerializer(data=request.data)
+        if input.is_valid():
+            data = input.validated_data
+
+            source = data["src_script"]
+            target = data["tar_script"]
+            note_obj = enhance_models.DifferenceNote.objects.filter(src_script=source,
+                                                                    tar_script=target).first()
+            if note_obj is None:
+                note_obj = enhance_models.DifferenceNote(src_script=source,
+                                                         tar_script=target)
+
+            note_obj.note = data["note"]
+            note_obj.save()
+
+            output = serializers.DifferenceNoteSerializer(note_obj)
+            return Response(output.data, status=status.HTTP_200_OK)
+        return Response(input.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ScriptContentView(APIView):
     """

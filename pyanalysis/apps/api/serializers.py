@@ -45,4 +45,12 @@ class ScriptComparatorSerializer(serializers.Serializer):
     source = ScriptContentSerializer()
     target = ScriptContentSerializer()
     diff = serializers.CharField()
+    note = serializers.CharField(required=False)
 
+class DifferenceNoteSerializer(serializers.ModelSerializer):
+
+    note = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = enhance_models.DifferenceNote
+        fields = ('src_script', 'tar_script', 'note', )

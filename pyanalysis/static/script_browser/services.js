@@ -198,6 +198,25 @@
                             self.data = data;
                         });
 
+                },
+
+                update_note: function(src_id, tar_id, note){
+                    var self = this;
+                    var request = {
+                        src_script: src_id,
+                        tar_script: tar_id,
+                        note: note
+                    };
+                    if (note == self.note) {
+                        return false;
+                    }
+                    else {
+                        return $http.post(apiUrl, request)
+                            .success(function (data) {
+                                self.note = data.note;
+                            });
+                    }
+
                 }
             });
 
