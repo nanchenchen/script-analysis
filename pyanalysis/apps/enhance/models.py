@@ -1,9 +1,12 @@
+import ntpath
+
 from django.db import models, transaction
 from django.conf import settings
 
 from fields import PositiveBigIntegerField
 from gensim.corpora import Dictionary as GensimDictionary
 import gensim.similarities
+import editdistance
 
 from pyanalysis.apps.corpus.models import Dataset, Script, Line
 from pyanalysis.apps.enhance.tokenizers import *
@@ -359,7 +362,22 @@ class Dictionary(models.Model):
 
                 SimilarityPair.objects.bulk_create(sim_pair_list)
                 sim_pair_list = []
+    def calc_script_name_similarity(self):
+        scripts = self.dataset.scripts.all()
+        sim_pair_list = []
+        with transaction.atomic(savepoint=False):
+            for i in range(len(scripts)):
+                for j in range(i + 1, len(scripts)):
+                    name_similarity = editdistance.eval(ntpath.basename(scripts[i].name),
+                                                        ntpath.basename(scripts[j].name))
+                    sim_pair_list.append(
+                        SimilarityPair(type='name_similarity',
+                                       src_script_id=scripts[i].id,
+                                       tar_script_id=scripts[j].id,
+                                       similarity=name_similarity))
 
+                SimilarityPair.objects.bulk_create(sim_pair_list)
+                sim_pair_list = []
 
 class DictToken(models.Model):
     dictionary = models.ForeignKey(Dictionary, related_name='dic_tokens')
