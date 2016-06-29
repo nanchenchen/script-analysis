@@ -33,7 +33,8 @@ class SimilarityGraphView(APIView):
             metric = request.query_params.get('metric')
             threshold = {
                 'cosine': 0.1,
-                'common_calls': 5
+                'common_calls': 5,
+                'name_similarity': 0.75
             }
 
             if metric is None:
@@ -58,7 +59,11 @@ class SimilarityGraphView(APIView):
                     for l in links:
                         src_id = id_map[l.src_script_id]
                         tar_id = id_map[l.tar_script_id]
-                        similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': l.similarity})
+                        if metric == "name_similarity":
+                            similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': 1 / (l.similarity + 1e-5)})
+
+                        else:
+                            similarity_pairs.append({'source': src_id, 'target': tar_id, 'similarity': l.similarity})
 
 
                 results = {

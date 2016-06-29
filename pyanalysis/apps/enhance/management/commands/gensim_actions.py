@@ -40,6 +40,10 @@ class Command(BaseCommand):
             logger.info("Calculating num of common calls...")
             dictionary.calc_script_common_call_num()
 
+        if action == 'all' or action == 'name_similarity':
+            logger.info("Calculating name similarity...")
+            dictionary.calc_script_name_similarity()
+
 
         if action == 'all' or action == 'lda':
             import gensim
