@@ -89,7 +89,8 @@
                 <div class="list col box full-height" resizable r-directions="['right']" r-flex="true">
                     <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
                     <table>
-                    <tbody ng-repeat="pair in similarity_pairs" ng-click="click_pair(pair.source.id, pair.target.id)" ng-cloak="">
+                    <tbody ng-repeat="pair in similarity_pairs" ng-click="click_pair(pair)"
+                           ng-class="highlight_row(pair)" ng-cloak="">
 
                             <tr>
                                 <td>{$ pair.source.name $}</td>
@@ -134,6 +135,12 @@
                     <span us-spinner="spinnerOptions" spinner-key="note-spinner"></span>
                     <h4 ng-cloak>Note</h4>
                     <textarea ng-model="note" class="note" ng-blur="update_note()"></textarea>
+                    <div class="relation-option-wrapper">
+                        <button class="btn btn-default relation-option-btn"
+                                ng-repeat="option in options" value="option.value"
+                                ng-click="change_option(option)"
+                                ng-class="option_btn_class(option)">{$ option.text $}</button>
+                    </div>
                 </div>
 
 

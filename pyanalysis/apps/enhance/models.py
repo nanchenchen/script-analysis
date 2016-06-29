@@ -471,6 +471,16 @@ class SimilarityPair(models.Model):
 class DifferenceNote(models.Model):
     src_script = models.ForeignKey(Script, related_name="difference_notes")
     tar_script = models.ForeignKey(Script)
+
+    RELATION_CHOICES = (
+        ('<', 'src is older'),
+        ('=', 'may be the same'),
+        ('>', 'tar is older'),
+        ('?', 'tar is older'),
+        ('U', 'Undefined'),
+    )
+    relative_relation = models.CharField(max_length=1, choices=RELATION_CHOICES, default='U')
+
     note = models.TextField(default="", blank=True)
 
     class Meta:

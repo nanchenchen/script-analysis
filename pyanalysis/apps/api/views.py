@@ -103,15 +103,18 @@ class ScriptComparatorView(APIView):
                 diff = "\n".join(difflib.unified_diff(source.text.split('\n'), target.text.split('\n'), fromfile=source.name, tofile=target.name))
 
                 note = ""
+                relative_relation = "U"
                 note_obj = enhance_models.DifferenceNote.objects.filter(src_script=source,
                                                                         tar_script=target).first()
                 if note_obj:
                     note = note_obj.note
+                    relative_relation = note_obj.relative_relation
 
                 results = {
                     "source": source,
                     "target": target,
                     "diff": diff,
+                    "relative_relation": relative_relation,
                     "note": note
                 }
 
@@ -141,6 +144,7 @@ class ScriptComparatorView(APIView):
                                                          tar_script=target)
 
             note_obj.note = data["note"]
+            note_obj.relative_relation = data["relative_relation"]
             note_obj.save()
 
             output = serializers.DifferenceNoteSerializer(note_obj)

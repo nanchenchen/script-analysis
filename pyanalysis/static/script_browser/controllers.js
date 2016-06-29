@@ -108,6 +108,14 @@
         $scope.source = undefined;
         $scope.target = undefined;
         $scope.diff = undefined;
+        $scope.relative_relation = "U";
+        $scope.options = [
+            {value: "<", text: "<"},
+            {value: "=", text: "="},
+            {value: ">", text: ">"},
+            {value: "?", text: "?"},
+            {value: "U", text: "Undefined"},
+        ];
 
         $scope.load = function(){
             var request = SimilarityPairs.load(Dataset.id, 'cosine', 0.9);
@@ -121,12 +129,22 @@
 
         };
 
+
+        $scope.option_btn_class = function(option){
+            return (option.value == $scope.relative_relation) ? "btn-selected" : "";
+        };
+        $scope.change_option = function(option){
+            $scope.relative_relation = option.value;
+            $scope.update_note();
+        };
+
         // load the similarity pairs
         $scope.load();
 
-        $scope.click_pair = function(src_id, tar_id){
+        $scope.current_pair = undefined;
+        $scope.click_pair = function(pair){
 
-            var request = Comparator.load(Dataset.id, src_id, tar_id);
+            var request = Comparator.load(Dataset.id, pair.source.id, pair.target.id);
             if (request) {
                 usSpinnerService.spin('code-spinner');
                 request.then(function() {
@@ -135,14 +153,20 @@
                     $scope.target = Comparator.data.target;
                     $scope.diff = Comparator.data.diff;
                     $scope.note = Comparator.data.note;
+                    $scope.relative_relation = Comparator.data.relative_relation;
+
+                    $scope.current_pair = pair;
 
                     PR.prettyPrint();
                 });
             }
         };
+        $scope.highlight_row = function(pair){
+            return ($scope.current_pair == pair) ? "highlight-row" : "";
+        };
 
         $scope.update_note = function(){
-            var request = Comparator.update_note($scope.source.id, $scope.target.id, $scope.note);
+            var request = Comparator.update_note($scope.source.id, $scope.target.id, $scope.relative_relation, $scope.note);
             if (request) {
                 usSpinnerService.spin('note-spinner');
                 request.then(function() {

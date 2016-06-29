@@ -200,14 +200,15 @@
 
                 },
 
-                update_note: function(src_id, tar_id, note){
+                update_note: function(src_id, tar_id, relative_relation, note){
                     var self = this;
                     var request = {
                         src_script: src_id,
                         tar_script: tar_id,
+                        relative_relation: relative_relation,
                         note: note
                     };
-                    if (note == self.note) {
+                    if (self.relative_relation == relative_relation && note == self.note) {
                         return false;
                     }
                     else {

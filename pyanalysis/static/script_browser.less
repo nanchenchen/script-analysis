@@ -179,7 +179,7 @@ common-call-graph{
 
 .note {
     width: 96%;
-    height: 92%;
+    height: 89%;
 }
 
 .list{
@@ -193,6 +193,14 @@ common-call-graph{
     }
     tbody {
         border: 5px white solid;
+
+    }
+    tbody:hover {
+        border-left: 5px solid #f66 !important;
+        cursor: pointer;
+    }
+    tr {
+
     }
     tr:nth-child(even) {
         background-color: rgba(255, 197, 71, 0.20);
@@ -203,4 +211,21 @@ common-call-graph{
     .similarity{
         background-color: rgba(169, 255, 0, 0.2);
     }
+}
+
+.relation-option-btn {
+    margin: 2px 3px;
+    &:hover,&:active,&:focus {
+        background-color: #fcc;
+        opacity: 1;
+    }
+}
+
+.btn-selected {
+    background-color: #fcc;
+    opacity: 0.8;
+}
+
+.highlight-row {
+    border-left: 5px solid #f66 !important;
 }
