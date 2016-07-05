@@ -3,3 +3,4 @@ gensim
 nltk
 sklearn
 mpld3
+editdistance
