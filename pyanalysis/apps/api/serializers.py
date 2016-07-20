@@ -14,11 +14,14 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 class ScriptSerializer(serializers.ModelSerializer):
 
-    call_counts = serializers.ListField(child=serializers.DictField())
+    #call_counts = serializers.ListField(child=serializers.DictField())
     class Meta:
         model = corpus_models.Script
-        fields = ('id', 'name', 'call_counts', )
-        read_only_fields = ('id', 'name', 'call_counts', )
+        #fields = ('id', 'name', 'call_counts', )
+        #read_only_fields = ('id', 'name', 'call_counts', )
+        fields = ('id', 'name', )
+        read_only_fields = ('id', 'name', )
+
 
 class ScriptContentSerializer(serializers.ModelSerializer):
 
@@ -53,7 +56,11 @@ class DifferenceNoteSerializer(serializers.ModelSerializer):
     relative_relation = serializers.CharField(required=False, allow_blank=True)
     note = serializers.CharField(required=False, allow_blank=True)
 
-
     class Meta:
         model = enhance_models.DifferenceNote
         fields = ('src_script', 'tar_script', 'relative_relation', 'note', )
+
+class DatasetRelationGraphSerializer(serializers.Serializer):
+    dataset = serializers.IntegerField(required=True)
+    nodes = ScriptSerializer(many=True)
+    links = DifferenceNoteSerializer(many=True)

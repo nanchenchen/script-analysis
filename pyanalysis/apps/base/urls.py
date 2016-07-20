@@ -11,6 +11,7 @@ urlpatterns = patterns('',
                      #  url(r'^explorer(?:/(?P<dataset_pk>\d+))?/$', views.ExplorerView.as_view(), name='explorer'),
                      #  url(r'^grouper(?:/(?P<dataset_pk>\d+))?/$', views.GrouperView.as_view(), name='grouper'),
                     url(r'^script_browser(?:/(?P<dataset_pk>\d+))?/$', views.ScriptBrowserView.as_view(), name='script_browser'),
+                    url(r'^relation_graph(?:/(?P<dataset_pk>\d+))?/$', views.RelationGraphView.as_view(), name='relation_graph'),
                     url(r'^script_comparator(?:/(?P<dataset_pk>\d+))?/$', views.ScriptComparatorView.as_view(), name='script_comparator'),
                     url(r'^script_vargraph(?:/(?P<dataset_pk>\d+))?/$', views.ScriptVarGraphView.as_view(), name='script_vargraph'),
 )

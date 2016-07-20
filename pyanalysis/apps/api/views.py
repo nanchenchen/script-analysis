@@ -230,6 +230,40 @@ class DatasetView(APIView):
 
         return Response("Please specify dataset id", status=status.HTTP_400_BAD_REQUEST)
 
+class DatasetRelationGraphView(APIView):
+    """
+    Get relations in a dataset
+
+    **Request:** ``GET /api/relation/1``
+    """
+
+
+    def get(self, request, dataset_id, format=None):
+
+
+        try:
+            dataset = corpus_models.Dataset.objects.get(id=dataset_id)
+
+            nodes = dataset.scripts.all()
+            diff_notes = enhance_models.DifferenceNote.objects.filter(src_script__dataset_id=dataset_id).all()
+
+            results = {
+                "dataset": dataset_id,
+                "nodes": nodes,
+                "links": diff_notes
+            }
+
+            output = serializers.DatasetRelationGraphSerializer(results)
+            return Response(output.data, status=status.HTTP_200_OK)
+        except:
+            import traceback
+            traceback.print_exc()
+            import pdb
+            pdb.set_trace()
+            return Response("Dataset not exist", status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 class APIRoot(APIView):
     """

@@ -95,6 +95,59 @@
     ];
     module.controller('ScriptBrowser.controllers.ViewController', ViewController);
 
+    var RelationGraphController = function ($scope, Dataset, RelationGraph, Script, usSpinnerService) {
+
+        $scope.spinnerOptions = {
+            radius: 20,
+            width: 6,
+            length: 10,
+            color: "#000000"
+        };
+
+        $scope.relation_graph_data = undefined;
+        $scope.script = undefined;
+        $scope.focus_node = undefined;
+
+        $scope.load = function(){
+            var request = RelationGraph.load(Dataset.id);
+            if (request) {
+                usSpinnerService.spin('vis-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('vis-spinner');
+                    $scope.relation_graph_data = RelationGraph.data;
+                });
+            }
+
+        };
+
+
+        $scope.click_node = function(script){
+            console.log(script);
+            $scope.focus_node = script;
+            var request = Script.load(script.id);
+            if (request) {
+                usSpinnerService.spin('code-spinner');
+                request.then(function() {
+                    usSpinnerService.stop('code-spinner');
+                    $scope.script = Script.data;
+                    PR.prettyPrint();
+                });
+            }
+        };
+
+        // load the similarity graph
+        $scope.load();
+
+    };
+    RelationGraphController.$inject = [
+        '$scope',
+        'ScriptBrowser.services.Dataset',
+        'ScriptBrowser.services.RelationGraph',
+        'ScriptBrowser.services.Script',
+        'usSpinnerService'
+    ];
+    module.controller('ScriptBrowser.controllers.RelationGraphController', RelationGraphController);
+
     var ComparatorController = function ($scope, Dataset, SimilarityPairs, Comparator, usSpinnerService) {
 
         $scope.spinnerOptions = {
