@@ -62,5 +62,7 @@ class DifferenceNoteSerializer(serializers.ModelSerializer):
 
 class DatasetRelationGraphSerializer(serializers.Serializer):
     dataset = serializers.IntegerField(required=True)
-    nodes = ScriptSerializer(many=True)
-    links = DifferenceNoteSerializer(many=True)
+    #nodes = ScriptSerializer(many=True)
+    #links = DifferenceNoteSerializer(many=True)
+    nodes = serializers.ListField(serializers.DictField())
+    links = serializers.ListField(serializers.DictField())

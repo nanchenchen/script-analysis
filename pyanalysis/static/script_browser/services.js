@@ -104,19 +104,19 @@
             angular.extend(RelationGraph.prototype, {
                 construct_node_links: function(data){
                     var self = this;
-                    data.nodes.forEach(function(d){
+                    /*data.nodes.forEach(function(d){
                        // d.links = [];
-                        d.id = "node_" + d.id;
+                        //d.id = "node_" + d.id;
                     });
                     data.links.forEach(function(d){
-                       /* var src_node = data.nodes[d.source];
+                        var src_node = data.nodes[d.source];
                         var tar_node = data.nodes[d.target];
                         src_node.links.push(tar_node);
-                        tar_node.links.push(src_node);(*/
+                        tar_node.links.push(src_node);(
 
-                        d.source = "node_" + d.src_script;
-                        d.target = "node_" + d.tar_script;
-                    });
+                       // d.source = "node_" + d.src_script;
+                       // d.target = "node_" + d.tar_script;
+                    });*/
                     return data;
                 },
 

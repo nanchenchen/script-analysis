@@ -244,13 +244,68 @@ class DatasetRelationGraphView(APIView):
         try:
             dataset = corpus_models.Dataset.objects.get(id=dataset_id)
 
-            nodes = dataset.scripts.all()
+            scripts = dataset.scripts.all()
             diff_notes = enhance_models.DifferenceNote.objects.filter(src_script__dataset_id=dataset_id).all()
+
+            script_map = {}
+            nodes = []
+            node_map = {}
+            node_idx = 0
+
+            links = []
+
+            for script in scripts:
+                script_map[script.id] = script
+                #node_map[script.id] = idx
+
+            for diff in diff_notes:
+                source = None
+                target = None
+                note = diff.note
+                relation = None
+
+                if diff.src_script_id not in node_map:
+                    node_map[diff.src_script_id] = node_idx
+                    nodes.append({
+                        "id": node_idx,
+                        "name": script_map[diff.src_script_id].name
+                    })
+                    node_idx += 1
+
+                if diff.tar_script_id not in node_map:
+                    node_map[diff.tar_script_id] = node_idx
+                    nodes.append({
+                        "id": node_idx,
+                        "name": script_map[diff.tar_script_id].name
+                    })
+                    node_idx += 1
+
+                if diff.relative_relation == '>':
+                    source = node_map[diff.tar_script_id]
+                    target = node_map[diff.src_script_id]
+                    relation = 'D'
+
+                else:
+                    source = node_map[diff.src_script_id]
+                    target = node_map[diff.tar_script_id]
+                    if diff.relative_relation == '=':
+                        relation = 'E'
+                    else:
+                        relation = 'U'
+
+                links.append({
+                    "source": source,
+                    "target": target,
+                    "relation": relation,
+                    "note": note
+
+                })
+
 
             results = {
                 "dataset": dataset_id,
                 "nodes": nodes,
-                "links": diff_notes
+                "links": links
             }
 
             output = serializers.DatasetRelationGraphSerializer(results)

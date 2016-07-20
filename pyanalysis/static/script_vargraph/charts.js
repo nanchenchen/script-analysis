@@ -13,17 +13,8 @@
 
             var width = 780,
                 height = 590,
-                radius = 4,
                 padding = 10;
 
-            var iteration = 50;
-
-            var color = d3.scale.category20();
-
-            var force = d3.layout.force()
-                .charge(-120)
-                .linkDistance(function(d){ return 10 / d.similarity; })
-                .size([width, height]);
 
             var svg = $d3_element.append("svg")
                 .attr("width", width)
