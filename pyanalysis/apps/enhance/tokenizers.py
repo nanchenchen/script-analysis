@@ -62,6 +62,7 @@ class TokenLoader(object):
     def tokenize(self, obj):
         return map(lambda x: x.text, obj.tokens.all())
 
+
 class CallTokenLoader(TokenLoader):
 
     def tokenize(self, obj):
@@ -78,8 +79,23 @@ class CallTokenLoader(TokenLoader):
 
         cc = CallCollector()
         cc.visit(tree)
-        result = filter(lambda x: x is not None, cc.calls)
+        results = filter(lambda x: x is not None, cc.calls)
         for f in self.filters:
-            result = filter(lambda x: x not in f, result)
+            results = filter(lambda x: x not in f, results)
 
-        return result
+        return results
+
+
+class DiffTokenLoader(TokenLoader):
+
+    def tokenize(self, obj):
+        src = obj.text
+        lines = src.split('\n')
+
+        results = []
+
+        for line in lines[4:]:
+            if line.startswith('-') or line.startswith('+'):
+                results.append(line[1:])
+
+        return results

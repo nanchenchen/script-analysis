@@ -88,7 +88,7 @@
         </div>
         <div id="content" class="row ng-cloak" ng-cloak  ng-controller="ScriptBrowser.controllers.RelationGraphController">
             <div class="row top">
-                <div id="vis" class="col-md-5 box fix-height">
+                <div id="vis" class="col-md-5 box">
                     <span us-spinner="spinnerOptions" spinner-key="vis-spinner"></span>
 
                     <relation-graph
@@ -101,7 +101,7 @@
                     </common-call-graph>-->
                 </div>
 
-                <div id="code" class="col-md-6 box fix-height">
+                <div id="code" class="col-md-6 box">
                     <span us-spinner="spinnerOptions" spinner-key="code-spinner"></span>
                     <div ng-hide="script" class="placeholder">Click a node on the left to show its contents</div>
                     <h3 ng-cloak>{$ script.name $}</h3>

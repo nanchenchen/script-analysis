@@ -124,7 +124,7 @@
         $scope.click_node = function(script){
             console.log(script);
             $scope.focus_node = script;
-            var request = Script.load(script.id);
+            var request = Script.load(script.original_id);
             if (request) {
                 usSpinnerService.spin('code-spinner');
                 request.then(function() {
@@ -171,7 +171,7 @@
         ];
 
         $scope.load = function(){
-            var request = SimilarityPairs.load(Dataset.id, 'cosine', 0.9);
+            var request = SimilarityPairs.load(Dataset.id, 'cosine', 0.8);
             if (request) {
                 usSpinnerService.spin('vis-spinner');
                 request.then(function() {

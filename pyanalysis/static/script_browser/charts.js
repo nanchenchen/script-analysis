@@ -145,8 +145,8 @@
              var self = this;
             var $d3_element = d3.select($element[0]);
 
-            var width = 780,
-                height = 590,
+            var width = 800,
+                height = 800,
                 padding = 10;
 
 
@@ -191,15 +191,15 @@
                   .event(svg);
                 svg.attr('height', height - padding * 2);
 
-              /*  g.selectAll("g.node")
+                g.selectAll("g.node")
                     .on("click", function(d){
                         var node = graph.node(d);
-                        d3.selectAll("#code .line").classed("active", false);
+                        /*d3.selectAll("#code .line").classed("active", false);
                         d3.selectAll("#vis rect").classed("active", false);
-                        d3.selectAll("#vis .edgePath").classed("active", false);
+                        d3.selectAll("#vis .edgePath").classed("active", false);*/
 
                         if (current_selected != node){
-                            if (node.lines.length > 0){
+                            /*if (node.lines.length > 0){
                                 node.lines.forEach(function(line){
                                     d3.selectAll("#line_" + line).classed("active", true);
                                 });
@@ -207,16 +207,16 @@
                             }
 
 
-                            d3.select(this).select("rect").classed("active", true);
+                            d3.select(this).select("rect").classed("active", true);*/
                             current_selected = node;
-                            onClicked("node");
+                            onClicked(node);
                         }
                         else{
                             current_selected = undefined;
                             onClicked(undefined);
                         }
                     }
-                    );*/
+                    );
 
                 g.selectAll("g.edgePath").each(function(edge_id){
                     var edge = graph.edge(edge_id);

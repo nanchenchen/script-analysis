@@ -263,11 +263,13 @@ class DatasetRelationGraphView(APIView):
                 target = None
                 note = diff.note
                 relation = None
-
+                if diff.relative_relation != '>' and diff.relative_relation != '<':
+                    continue
                 if diff.src_script_id not in node_map:
                     node_map[diff.src_script_id] = node_idx
                     nodes.append({
                         "id": node_idx,
+                        "original_id": diff.src_script_id,
                         "name": script_map[diff.src_script_id].name
                     })
                     node_idx += 1
@@ -276,6 +278,7 @@ class DatasetRelationGraphView(APIView):
                     node_map[diff.tar_script_id] = node_idx
                     nodes.append({
                         "id": node_idx,
+                        "original_id": diff.tar_script_id,
                         "name": script_map[diff.tar_script_id].name
                     })
                     node_idx += 1
@@ -288,7 +291,9 @@ class DatasetRelationGraphView(APIView):
                 else:
                     source = node_map[diff.src_script_id]
                     target = node_map[diff.tar_script_id]
-                    if diff.relative_relation == '=':
+                    if diff.relative_relation == '<':
+                        relation = 'D'
+                    elif diff.relative_relation == '=':
                         relation = 'E'
                     else:
                         relation = 'U'

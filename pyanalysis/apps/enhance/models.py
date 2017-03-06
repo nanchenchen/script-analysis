@@ -1,4 +1,5 @@
 import ntpath
+import difflib
 
 from django.db import models, transaction
 from django.conf import settings
@@ -485,6 +486,14 @@ class SimilarityPair(models.Model):
     tar_script = models.ForeignKey(Script, db_index=True)
     similarity = models.FloatField(default=0.0)
 
+    def get_diff(self):
+        source = self.src_script
+        target = self.tar_script
+
+        diff = "\n".join(difflib.unified_diff(source.text.split('\n'), target.text.split('\n'), fromfile=source.name, tofile=target.name))
+
+        return diff
+
 
 class DifferenceNote(models.Model):
     src_script = models.ForeignKey(Script, related_name="difference_notes")
@@ -505,3 +514,12 @@ class DifferenceNote(models.Model):
         index_together = (
             "src_script", "tar_script"
         )
+
+
+class ScriptDiff(models.Model):
+    """
+    Script diff between two files
+    """
+
+    pair = models.ForeignKey(SimilarityPair, related_name="diff", unique=True)
+    text = models.TextField(default="", blank=True, null=True)
