@@ -1,3 +1,4 @@
+import numpy as np
 import path
 from StringIO import StringIO
 from time import time
@@ -20,6 +21,92 @@ def tokenize_line(line):
         text = token[1]
         tokens_list.append((type, text))
     return tokens_list
+
+
+def LCS(seq1, seq2):
+    len1 = len(seq1)
+    len2 = len(seq2)
+    dp = np.zeros((len1 + 1, len2 + 1))
+
+    for idx1, seq1_ele in enumerate(seq1):
+        for idx2, seq2_ele in enumerate(seq2):
+            if seq1_ele == seq2_ele:
+                dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2] + 1
+            else:
+                dp[idx1 + 1][idx2 + 1] = max(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1])
+
+    return dp[len1][len2]
+
+
+def editing_dist(seq1, seq2):
+    len1 = len(seq1)
+    len2 = len(seq2)
+    dp = np.zeros((len1 + 1, len2 + 1))
+
+    for idx1, seq1_ele in enumerate(seq1):
+        for idx2, seq2_ele in enumerate(seq2):
+            if seq1_ele == seq2_ele:
+                dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2]
+            else:
+                dp[idx1 + 1][idx2 + 1] = min(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1]) + 1
+
+    return dp[len1][len2] / max(len1, len2)
+
+
+def matching(list1, list2):
+    pass
+
+
+# graph should be an adjacency matrix
+def dijkstra(graph, src, tar):
+    num_nodes = graph.shape[0] # get number of nodes from graph
+    dist = np.zeros(num_nodes) + float('inf')
+    prev_node = [None] * num_nodes
+    visited = [False] * num_nodes
+
+    # initialization with dist from src
+    for idx, d in enumerate(graph[src]):
+        if d != float('inf'):
+            dist[idx] = d
+            prev_node[idx] = src
+    visited[src] = True
+
+    num_visited = 1
+
+    while num_visited < num_nodes:
+        # find minimum dist
+        min = float('inf')
+        min_node = None
+        for idx, d in enumerate(dist):
+            if not visited[idx] and d < min:
+                min = d
+                min_node = idx
+
+        visited[min_node] = True
+        num_visited += 1
+
+        # stop if find target
+        if min_node == tar:
+            break
+
+        # update dist
+        for idx, d in enumerate(graph[min_node]):
+            if (dist[min_node] + d) < dist[idx]:
+                dist[idx] = dist[min_node] + d
+                prev_node[idx] = min_node
+
+    path = [tar]
+    current_node = tar    
+    while prev_node[current_node] is not None:
+        path = [prev_node[current_node]] + path
+        current_node = prev_node[current_node]
+        
+    return path
+
+
+# both graphs should be an adjacency matrix
+def bipartite_matching(capacity_graph, cost_graph):
+    pass
 
 class Command(BaseCommand):
     help = "Run gensim operations."
