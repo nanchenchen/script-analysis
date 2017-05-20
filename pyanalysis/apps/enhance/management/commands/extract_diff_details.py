@@ -23,12 +23,13 @@ def tokenize_line(line):
     return tokens_list
 
 
-def filter_out_operator(seq):
-    return filter(lambda (token_type, token_text): token_type != 'OP', seq)
+def filter_out_token(seq):
+    remove_types = ['OP', 'COMMENT', 'ENDMARKER', 'NL']
+    return filter(lambda (token_type, token_text): token_type not in remove_types, seq)
 
 def editing_dist(seq1, seq2):
-    seq1 = filter_out_operator(seq1)
-    seq2 = filter_out_operator(seq2)
+    seq1 = filter_out_token(seq1)
+    seq2 = filter_out_token(seq2)
 
     len1 = len(seq1)
     len2 = len(seq2)
@@ -62,8 +63,8 @@ def line_matching_by_lcs(list1, list2, matching_threshold=0.5):
         for j in range(len2):
             dist[i][j] = editing_dist(list1[i], list2[j])
 
-    #import pprint
-    #pprint.pprint(dist)
+    # import pprint
+    # pprint.pprint(dist)
 
     for idx1, list1_ele in enumerate(list1):
         for idx2, list2_ele in enumerate(list2):
@@ -231,7 +232,7 @@ class Command(BaseCommand):
 
         from pyanalysis.apps.enhance.models import ScriptDiff
         # diffs = ScriptDiff.objects.all()[4]
-        diffs = ScriptDiff.objects.get(id=4)
+        diffs = ScriptDiff.objects.get(id=3)
 
         # Step 1: Extract + and - lines
         diff_text = diffs.text
