@@ -23,25 +23,23 @@ def tokenize_line(line):
     return tokens_list
 
 
-def LCS(seq1, seq2):
-    len1 = len(seq1)
-    len2 = len(seq2)
-    dp = np.zeros((len1 + 1, len2 + 1))
-
-    for idx1, seq1_ele in enumerate(seq1):
-        for idx2, seq2_ele in enumerate(seq2):
-            if seq1_ele == seq2_ele:
-                dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2] + 1
-            else:
-                dp[idx1 + 1][idx2 + 1] = max(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1])
-
-    return dp[len1][len2]
-
+def filter_out_operator(seq):
+    return filter(lambda (token_type, token_text): token_type != 'OP', seq)
 
 def editing_dist(seq1, seq2):
+    seq1 = filter_out_operator(seq1)
+    seq2 = filter_out_operator(seq2)
+
     len1 = len(seq1)
     len2 = len(seq2)
     dp = np.zeros((len1 + 1, len2 + 1))
+
+    # initialize empty string's editing dist
+    for idx1, seq1_ele in enumerate(seq1):
+        dp[idx1 + 1][0] = idx1 + 1
+
+    for idx2, seq2_ele in enumerate(seq2):
+        dp[0][idx2 + 1] = idx2 + 1
 
     for idx1, seq1_ele in enumerate(seq1):
         for idx2, seq2_ele in enumerate(seq2):
@@ -50,14 +48,81 @@ def editing_dist(seq1, seq2):
             else:
                 dp[idx1 + 1][idx2 + 1] = min(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1]) + 1
 
-    return dp[len1][len2] / max(len1, len2)
+    return dp[len1][len2] / (len1 + len2)
 
+
+def line_matching_by_lcs(list1, list2, matching_threshold=0.5):
+
+    len1 = len(list1)
+    len2 = len(list2)
+    dp = np.zeros((len1 + 1, len2 + 1))
+
+    dist = np.zeros((len1, len2)) + float('inf')
+    for i in range(len1):
+        for j in range(len2):
+            dist[i][j] = editing_dist(list1[i], list2[j])
+
+    #import pprint
+    #pprint.pprint(dist)
+
+    for idx1, list1_ele in enumerate(list1):
+        for idx2, list2_ele in enumerate(list2):
+            if dist[idx1][idx2] < matching_threshold:
+                dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2] + 1
+            else:
+                dp[idx1 + 1][idx2 + 1] = max(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1])
+
+    #pprint.pprint(dp)
+
+
+    i = len1
+    j = len2
+    items = []
+    while i > 0 and j > 0:
+        if dist[i - 1][j - 1] < matching_threshold:
+            items = [(i - 1, j - 1)] + items
+            i -= 1
+            j -= 1
+        elif dp[i - 1][j] > dp[i][j - 1]:
+            i -= 1
+        else:
+            j -= 1
+
+    return dp[len1][len2], items
 
 def matching(list1, list2):
-    pass
+    len1 = len(list1)
+    len2 = len(list2)
+    num_nodes = len1 + len2 + 2  # num of nodes is len1 + len2 + src + tar
+
+    capacity_graph = np.zeros((num_nodes, num_nodes))
+    cost_graph = np.zeros((num_nodes, num_nodes)) + float('inf')
+
+    # node id:  src is 0, 1~len1 are for list1, (len1 + 1) ~ (len1 + len2) are for list 2, tar is num_nodes - 1
+    src = 0
+    list1_nodes = range(1, len1 + 1)
+    list2_nodes = range(len1 + 1, len1 + len2 + 1)
+    tar = num_nodes - 1
+
+    # initialize src to list1 nodes
+    for i in list1_nodes:
+        capacity_graph[src][i] = 1
+        cost_graph[src][i] = 0
+
+    # initialize list2 nodes to tar
+    for i in list2_nodes:
+        capacity_graph[i][tar] = 1
+        cost_graph[src][i] = 0
+
+    for i, list1_node in enumerate(list1_nodes):
+        for j, list2_node in enumerate(list2_nodes):
+            capacity_graph[list1_node][list2_node] = 1
+            cost_graph[list1_node][list2_node] = editing_dist(list1[i], list2[j])
+
+    # TODO: run shortest path algorithm and update residual network
 
 
-# graph should be an adjacency matrix
+# graph should be an adjacency matrix with non-negative dist
 def dijkstra(graph, src, tar):
     num_nodes = graph.shape[0] # get number of nodes from graph
     dist = np.zeros(num_nodes) + float('inf')
@@ -104,9 +169,45 @@ def dijkstra(graph, src, tar):
     return path
 
 
+def floyd_warshall(graph):
+    num_nodes = graph.shape[0]
+
+    # initialization
+    dist = np.zeros((num_nodes, num_nodes)) + float('inf')
+    last_node = [[None] * num_nodes for i in range(num_nodes)]
+
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            if i == j:
+                dist[i][j] = 0
+            elif graph[i][j] != float('inf'):
+                dist[i][j] = graph[i][j]
+                last_node[i][j] = i
+
+    for k in range(num_nodes):
+        for i in range(num_nodes):
+            for j in range(num_nodes):
+                if dist[i][j] > (dist[i][k] + dist[k][j]):
+                    dist[i][j] = dist[i][k] + dist[k][j]
+                    last_node[i][j] = k
+
+    return dist, last_node
+
+
+def extract_fw_path(last_node, src, tar):
+    path = [tar]
+    current_node = tar
+    while last_node[src][current_node] is not None:
+        path = [last_node[src][current_node]] + path
+        current_node = last_node[src][current_node]
+
+    return path
+
+
 # both graphs should be an adjacency matrix
 def bipartite_matching(capacity_graph, cost_graph):
     pass
+
 
 class Command(BaseCommand):
     help = "Run gensim operations."
@@ -129,7 +230,8 @@ class Command(BaseCommand):
         threshold = options.get('threshold')
 
         from pyanalysis.apps.enhance.models import ScriptDiff
-        diffs = ScriptDiff.objects.all()[1]
+        # diffs = ScriptDiff.objects.all()[4]
+        diffs = ScriptDiff.objects.get(id=4)
 
         # Step 1: Extract + and - lines
         diff_text = diffs.text
@@ -142,8 +244,16 @@ class Command(BaseCommand):
         # Step 1.5: Tokenize
         diff_lines_plus_t = [tokenize_line(line) for line in diff_lines_plus]   # tokenize
         diff_lines_minus_t = [tokenize_line(line) for line in diff_lines_minus]   # tokenize
-        print diff_lines_plus_t
-        print diff_lines_minus_t
+        #print diff_lines_plus_t
+        #print diff_lines_minus_t
+
+        try:
+            lcs, items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
+            for (i, j) in items:
+                print "(%d, %d): %s  | %s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
+        except:
+            import traceback
+            traceback.print_exc()
 
 
         import pdb
