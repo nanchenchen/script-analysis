@@ -78,18 +78,20 @@ def line_matching_by_lcs(list1, list2, matching_threshold=0.5):
 
     i = len1
     j = len2
-    items = []
+    matching_items = []
     while i > 0 and j > 0:
         if dist[i - 1][j - 1] < matching_threshold:
-            items = [(i - 1, j - 1)] + items
+            matching_items = [(i - 1, j - 1)] + matching_items
             i -= 1
             j -= 1
         elif dp[i - 1][j] > dp[i][j - 1]:
+            matching_items = [(i - 1, None)] + matching_items
             i -= 1
         else:
+            matching_items = [(None, j - 1)] + matching_items
             j -= 1
 
-    return dp[len1][len2], items
+    return matching_items
 
 def matching(list1, list2):
     len1 = len(list1)
@@ -161,13 +163,13 @@ def dijkstra(graph, src, tar):
                 dist[idx] = dist[min_node] + d
                 prev_node[idx] = min_node
 
-    path = [tar]
+    path_nodes = [tar]
     current_node = tar    
     while prev_node[current_node] is not None:
-        path = [prev_node[current_node]] + path
+        path_nodes = [prev_node[current_node]] + path_nodes
         current_node = prev_node[current_node]
         
-    return path
+    return path_nodes
 
 
 def floyd_warshall(graph):
@@ -196,13 +198,13 @@ def floyd_warshall(graph):
 
 
 def extract_fw_path(last_node, src, tar):
-    path = [tar]
+    path_nodes = [tar]
     current_node = tar
     while last_node[src][current_node] is not None:
-        path = [last_node[src][current_node]] + path
+        path_nodes = [last_node[src][current_node]] + path_nodes
         current_node = last_node[src][current_node]
 
-    return path
+    return path_nodes
 
 
 # both graphs should be an adjacency matrix
@@ -232,7 +234,7 @@ class Command(BaseCommand):
 
         from pyanalysis.apps.enhance.models import ScriptDiff
         # diffs = ScriptDiff.objects.all()[4]
-        diffs = ScriptDiff.objects.get(id=3)
+        diffs = ScriptDiff.objects.get(id=5)
 
         # Step 1: Extract + and - lines
         diff_text = diffs.text
@@ -249,9 +251,14 @@ class Command(BaseCommand):
         #print diff_lines_minus_t
 
         try:
-            lcs, items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
-            for (i, j) in items:
-                print "(%d, %d): %s  | %s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
+            matching_items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
+            for (i, j) in matching_items:
+                if i is not None and j is not None:
+                    print "(%2d, %2d): %s\t|\t%s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
+                elif i is None and j is not None:
+                    print "(  , %2d): --------\t|\t%s" %(j,  diff_lines_minus[j])
+                elif i is not None and j is None:
+                    print "(%2d,   ): %s\t|\t--------" %(i,  diff_lines_plus[i])
         except:
             import traceback
             traceback.print_exc()
