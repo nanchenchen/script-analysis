@@ -34,6 +34,11 @@ def editing_dist(seq1, seq2, mode='dist'):
 
     len1 = len(seq1)
     len2 = len(seq2)
+    if len1 == 0 and len2 == 0:
+        if mode == 'dist':
+            return 0
+        elif mode == 'diff':
+            return []
     dp = np.zeros((len1 + 1, len2 + 1))
 
     # initialize empty string's editing dist
@@ -227,6 +232,42 @@ def bipartite_matching(capacity_graph, cost_graph):
     pass
 
 
+def extract_diff_tokens(script_diff, idx):
+    print "Script diff %d" %(idx)
+    # Step 1: Extract + and - lines
+    diff_text = script_diff.text
+    diff_lines = diff_text.split('\n')[3:] # skip first few lines
+    diff_lines_plus = filter(lambda x: x.startswith('+'), diff_lines)
+    diff_lines_minus = filter(lambda x: x.startswith('-'), diff_lines)
+    diff_lines_plus = [x[1:] for x in diff_lines_plus]   # remove + sign
+    diff_lines_minus = [x[1:] for x in diff_lines_minus] # remove - sign
+
+    # Step 1.5: Tokenize
+    diff_lines_plus_t = [tokenize_line(line) for line in diff_lines_plus]   # tokenize
+    diff_lines_minus_t = [tokenize_line(line) for line in diff_lines_minus]   # tokenize
+    #print diff_lines_plus_t
+    #print diff_lines_minus_t
+
+    diff_tokens = []
+    matching_items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
+    for (i, j) in matching_items:
+        if i is not None and j is not None:
+            # print "(%2d, %2d): %s\t|\t%s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
+            diff_tokens += editing_dist(diff_lines_plus_t[i], diff_lines_minus_t[j], mode='diff')
+        elif i is None and j is not None:
+            # print "(  , %2d): --------\t|\t%s" %(j,  diff_lines_minus[j])
+            diff_tokens += filter_out_token(diff_lines_minus_t[j])
+        elif i is not None and j is None:
+            # print "(%2d,   ): %s\t|\t--------" %(i,  diff_lines_plus[i])
+            diff_tokens += filter_out_token(diff_lines_plus_t[i])
+
+
+    # diff_tokens = map(lambda (token_type, text): token_type + '__' + text, diff_tokens)
+    diff_tokens = map(lambda (token_type, text): text, diff_tokens)
+
+
+    return diff_tokens
+
 class Command(BaseCommand):
     help = "Run gensim operations."
     args = '<dataset_id>'
@@ -244,43 +285,13 @@ class Command(BaseCommand):
         except ValueError:
             raise CommandError("Dataset id must be a number.")
 
-        type = options.get('type')
-        threshold = options.get('threshold')
-
         from pyanalysis.apps.enhance.models import ScriptDiff
-        # diffs = ScriptDiff.objects.all()[4]
-        diffs = ScriptDiff.objects.get(id=8)
+        diffs = ScriptDiff.objects.all()
+        #diffs = ScriptDiff.objects.get(id=3)
 
-        # Step 1: Extract + and - lines
-        diff_text = diffs.text
-        diff_lines = diff_text.split('\n')[3:] # skip first few lines
-        diff_lines_plus = filter(lambda x: x.startswith('+'), diff_lines)
-        diff_lines_minus = filter(lambda x: x.startswith('-'), diff_lines)
-        diff_lines_plus = [x[1:] for x in diff_lines_plus]   # remove + sign
-        diff_lines_minus = [x[1:] for x in diff_lines_minus] # remove - sign
-
-        # Step 1.5: Tokenize
-        diff_lines_plus_t = [tokenize_line(line) for line in diff_lines_plus]   # tokenize
-        diff_lines_minus_t = [tokenize_line(line) for line in diff_lines_minus]   # tokenize
-        #print diff_lines_plus_t
-        #print diff_lines_minus_t
-
-        try:
-            matching_items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
-            for (i, j) in matching_items:
-                if i is not None and j is not None:
-                    print "(%2d, %2d): %s\t|\t%s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
-                    #print editing_dist(diff_lines_plus_t[i], diff_lines_minus_t[j], mode='diff')
-                elif i is None and j is not None:
-                    print "(  , %2d): --------\t|\t%s" %(j,  diff_lines_minus[j])
-                    #print filter_out_token(diff_lines_minus_t[j])
-                elif i is not None and j is None:
-                    print "(%2d,   ): %s\t|\t--------" %(i,  diff_lines_plus[i])
-                    #print filter_out_token(diff_lines_plus_t[i])
-        except:
-            import traceback
-            traceback.print_exc()
-
+        from gensim.corpora import Dictionary as GensimDictionary
+        dictionary = GensimDictionary(extract_diff_tokens(diff, idx) for idx, diff in enumerate(diffs))
+        print(dictionary)
 
         import pdb
         pdb.set_trace()
