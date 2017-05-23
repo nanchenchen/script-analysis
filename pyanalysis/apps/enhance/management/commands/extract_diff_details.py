@@ -24,10 +24,11 @@ def tokenize_line(line):
 
 
 def filter_out_token(seq):
-    remove_types = ['OP', 'COMMENT', 'ENDMARKER', 'NL']
+    remove_types = ['OP', #'COMMENT',
+                    'ENDMARKER', 'NL']
     return filter(lambda (token_type, token_text): token_type not in remove_types, seq)
 
-def editing_dist(seq1, seq2):
+def editing_dist(seq1, seq2, mode='dist'):
     seq1 = filter_out_token(seq1)
     seq2 = filter_out_token(seq2)
 
@@ -48,9 +49,23 @@ def editing_dist(seq1, seq2):
                 dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2]
             else:
                 dp[idx1 + 1][idx2 + 1] = min(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1]) + 1
-
-    return dp[len1][len2] / (len1 + len2)
-
+    if mode == 'dist':
+        return dp[len1][len2] / (len1 + len2)
+    elif mode == 'diff':
+        diff_tokens = []
+        i = len1
+        j = len2
+        while i > 0 and j > 0:
+            if seq1[i - 1] == seq2[j - 1]:
+                i -= 1
+                j -= 1
+            elif dp[i - 1][j] <= dp[i][j - 1]:
+                diff_tokens = [seq1[i - 1]] + diff_tokens
+                i -= 1
+            elif dp[i - 1][j] > dp[i][j - 1]:
+                diff_tokens = [seq2[j - 1]] + diff_tokens
+                j -= 1
+        return diff_tokens
 
 def line_matching_by_lcs(list1, list2, matching_threshold=0.5):
 
@@ -234,7 +249,7 @@ class Command(BaseCommand):
 
         from pyanalysis.apps.enhance.models import ScriptDiff
         # diffs = ScriptDiff.objects.all()[4]
-        diffs = ScriptDiff.objects.get(id=5)
+        diffs = ScriptDiff.objects.get(id=8)
 
         # Step 1: Extract + and - lines
         diff_text = diffs.text
@@ -255,10 +270,13 @@ class Command(BaseCommand):
             for (i, j) in matching_items:
                 if i is not None and j is not None:
                     print "(%2d, %2d): %s\t|\t%s" %(i, j, diff_lines_plus[i], diff_lines_minus[j])
+                    #print editing_dist(diff_lines_plus_t[i], diff_lines_minus_t[j], mode='diff')
                 elif i is None and j is not None:
                     print "(  , %2d): --------\t|\t%s" %(j,  diff_lines_minus[j])
+                    #print filter_out_token(diff_lines_minus_t[j])
                 elif i is not None and j is None:
                     print "(%2d,   ): %s\t|\t--------" %(i,  diff_lines_plus[i])
+                    #print filter_out_token(diff_lines_plus_t[i])
         except:
             import traceback
             traceback.print_exc()
