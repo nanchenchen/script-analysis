@@ -293,6 +293,16 @@ class Command(BaseCommand):
         dictionary = GensimDictionary(extract_diff_tokens(diff, idx) for idx, diff in enumerate(diffs))
         print(dictionary)
 
+        corpus = [dictionary.doc2bow(extract_diff_tokens(diff, idx)) for idx, diff in enumerate(diffs)]
+
+        from gensim.models.tfidfmodel import TfidfModel
+        tfidf = TfidfModel(corpus)
+
+        corpus_tfidf = tfidf[corpus]
+
+        from gensim.models.ldamodel import LdaModel
+        lda = LdaModel(corpus=corpus_tfidf, id2word=dictionary, num_topics=100, update_every=1, chunksize=10000, passes=1)
+
         import pdb
         pdb.set_trace()
         # bulk_diff = []
