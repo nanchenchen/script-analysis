@@ -1,3 +1,5 @@
+
+
 from models import Dictionary
 from pyanalysis.apps.corpus.models import Dataset, Script
 from pyanalysis.apps.enhance.models import Dictionary, ScriptTopic, DictToken, TopicDictToken, TopicModel, TokenVectorElement
@@ -177,9 +179,26 @@ def default_topic_context(name, dataset_id):
 
 
 
+
 def build_script_dictionary(dataset_id):
     dataset = Dataset.objects.get(pk=dataset_id)
 
     dictionary = Dictionary._build_gensim_dictionary(dataset=dataset, scripts=dataset.scripts.all() )
     dictionary._vectorize_corpus()
 
+
+
+
+def diff_topic_context(name, dataset_id):
+    from pyanalysis.apps.enhance.models import ScriptDiff
+    diffs = ScriptDiff.objects.filter(pair__src_script__dataset_id=dataset_id)
+    queryset = diffs.all()
+
+    filters = [
+
+    ]
+
+    return TopicContext(name=name, queryset=queryset,
+                        tokenizer=DiffTokenLoader,
+                        filters=filters,
+                        minimum_frequency=1)
