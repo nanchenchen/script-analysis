@@ -2,7 +2,7 @@
 
 from models import Dictionary
 from pyanalysis.apps.corpus.models import Dataset, Script
-from pyanalysis.apps.enhance.models import Dictionary, ScriptTopic, DictToken, TopicDictToken, TopicModel, TokenVectorElement
+from pyanalysis.apps.enhance.models import Dictionary, TokenVectorElement, DiffTokenVectorElement
 from pyanalysis.apps.enhance.tokenizers import *
 
 # import the logging library
@@ -74,6 +74,50 @@ class DbWordVectorIterator(object):
         if count:
             return count['script__count']
 
+class DbDiffTokenVectorIterator(object):
+    def __init__(self, dictionary, freq_field='tfidf'):
+        self.dictionary = dictionary
+        self.freq_field = freq_field
+        self.current_script_diff_id = None
+        self.current_vector = None
+
+    def __iter__(self):
+        qset = DiffTokenVectorElement.objects.filter(dictionary=self.dictionary).order_by('script_diff')
+        self.current_script_diff_id = None
+        self.current_vector = []
+        current_position = 0
+        for mw in qset.iterator():
+            script_diff_id = mw.script_diff_id
+            token_idx = mw.dic_token_index
+            freq = getattr(mw, self.freq_field)
+
+            if self.current_script_diff_id is None:
+                self.current_script_diff_id = script_diff_id
+                self.current_vector = []
+
+            if self.current_script_diff_id != script_diff_id:
+                yield self.current_vector
+                self.current_vector = []
+                self.current_script_diff_id = script_diff_id
+                current_position += 1
+
+                if current_position % 10000 == 0:
+                    logger.info("Iterating through database token-vectors: item %d" % current_position)
+
+            self.current_vector.append((token_idx, freq))
+
+        # one more extra one
+        yield self.current_vector
+
+    def __len__(self):
+        from django.db.models import Count
+
+        count = DiffTokenVectorElement.objects \
+            .filter(dictionary=self.dictionary) \
+            .aggregate(Count('script_diff', distinct=True))
+
+        if count:
+            return count['script_diff__count']
 
 
 
@@ -187,7 +231,25 @@ def build_script_dictionary(dataset_id):
     dictionary._vectorize_corpus()
 
 
+class DiffTopicContext(TopicContext):
+    def build_bows(self, dictionary):
+        texts = DbTextIterator(self.queryset)
+        tokenized_texts = self.tokenizer(texts, *self.filters)
 
+        dictionary._vectorize_diff_corpus(queryset=self.queryset,
+                                          tokenizer=tokenized_texts)
+
+    def build_lda(self, dictionary, num_topics=30, **kwargs):
+        corpus = DbDiffTokenVectorIterator(dictionary)
+        return dictionary._build_lda(self.name, corpus, num_topics=num_topics, **kwargs)
+
+    def apply_lda(self, dictionary, model, lda=None):
+        corpus = DbDiffTokenVectorIterator(dictionary)
+        return dictionary._apply_diff_lda(model, corpus, lda=lda)
+
+    def evaluate_lda(self, dictionary, model, lda=None):
+        corpus = DbDiffTokenVectorIterator(dictionary)
+        return dictionary._evaluate_lda(model, corpus, lda=lda)
 
 def diff_topic_context(name, dataset_id):
     from pyanalysis.apps.enhance.models import ScriptDiff
@@ -198,7 +260,7 @@ def diff_topic_context(name, dataset_id):
 
     ]
 
-    return TopicContext(name=name, queryset=queryset,
+    return DiffTopicContext(name=name, queryset=queryset,
                         tokenizer=DiffTokenLoader,
                         filters=filters,
                         minimum_frequency=1)
