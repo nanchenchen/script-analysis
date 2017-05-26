@@ -9,6 +9,7 @@ api_root_urls = {
     'comparator': url(r'^comparator/$', views.ScriptComparatorView.as_view(), name='comparator'),
     'vargraph': url(r'^vargraph/$', views.ScriptVariableGraphView.as_view(), name='vargraph'),
     'dataset': url(r'^dataset/$', csrf_exempt(views.DatasetView.as_view()), name='dataset'),
+    'relation': url(r'^relation/(?P<dataset_id>[0-9]+)/$', csrf_exempt(views.DatasetRelationGraphView.as_view()), name='relation-graph'),
 }
 
 urlpatterns = api_root_urls.values() + [

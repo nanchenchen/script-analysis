@@ -89,6 +89,55 @@
         }
     ]);
 
+    //A service for loading relation graph.
+    module.factory('ScriptBrowser.services.RelationGraph', [
+        '$rootScope', '$http', 'djangoUrl',
+        function relationGraphFactory($rootScope, $http, djangoUrl) {
+
+
+
+            var RelationGraph = function () {
+                var self = this;
+                self.data = undefined;
+            };
+
+            angular.extend(RelationGraph.prototype, {
+                construct_node_links: function(data){
+                    var self = this;
+                    /*data.nodes.forEach(function(d){
+                       // d.links = [];
+                        //d.id = "node_" + d.id;
+                    });
+                    data.links.forEach(function(d){
+                        var src_node = data.nodes[d.source];
+                        var tar_node = data.nodes[d.target];
+                        src_node.links.push(tar_node);
+                        tar_node.links.push(src_node);(
+
+                       // d.source = "node_" + d.src_script;
+                       // d.target = "node_" + d.tar_script;
+                    });*/
+                    return data;
+                },
+
+                load: function (dataset) {
+                    var self = this;
+
+                    var apiUrl = djangoUrl.reverse('relation-graph', {dataset_id: dataset});
+
+                    return $http.get(apiUrl)
+                        .success(function (data) {
+                            self.data = self.construct_node_links(data);
+                        });
+
+                }
+            });
+
+            return new RelationGraph();
+        }
+    ]);
+
+
     //A service for loading similarity pairs.
     module.factory('ScriptBrowser.services.SimilarityPairs', [
         '$rootScope', '$http', 'djangoUrl',

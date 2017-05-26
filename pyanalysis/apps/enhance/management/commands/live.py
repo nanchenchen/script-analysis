@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, make_option, CommandError
 import ast
-from pyanalysis.apps.enhance.analyses import VariableCollector
+import pyanalysis.apps.corpus.models as corpus_models
+import pyanalysis.apps.enhance.models as enhance_models
 
 
 class Command(BaseCommand):
@@ -16,18 +17,10 @@ class Command(BaseCommand):
         except ValueError:
             raise CommandError("Dataset id must be a number.")
 
+        dataset = corpus_models.Dataset.objects.get(dataset_id=dataset_id)
 
-#        from pyanalysis.apps.enhance.models import Dictionary
-#        dictionary = Dictionary.objects.get(dataset_id=dataset_id)
+        scripts = dataset.scripts.all()
 
-        from pyanalysis.apps.corpus.models import Dataset
-        dataset = Dataset.objects.get(id=dataset_id)
-
-        src = dataset.scripts.all()[0].text
-        tree = ast.parse(src)
-        cc = VariableCollector()
-        cc.visit(tree)
-        print cc.variables
 
         import pdb
         pdb.set_trace()

@@ -1,4 +1,5 @@
 import ntpath
+import difflib
 
 from django.db import models, transaction
 from django.conf import settings
@@ -18,6 +19,30 @@ import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+class SimilarityPair(models.Model):
+    type = models.CharField(max_length=32, default="cosine", null=False, blank=False, db_index=True)
+    src_script = models.ForeignKey(Script, related_name="similarity_pairs", db_index=True)
+    tar_script = models.ForeignKey(Script, db_index=True)
+    similarity = models.FloatField(default=0.0)
+
+    def get_diff(self):
+        source = self.src_script
+        target = self.tar_script
+
+        diff = "\n".join(difflib.unified_diff(source.text.split('\n'), target.text.split('\n'), fromfile=source.name, tofile=target.name))
+
+        return diff
+
+
+class ScriptDiff(models.Model):
+    """
+    Script diff between two files
+    """
+
+    pair = models.ForeignKey(SimilarityPair, related_name="diff", unique=True)
+    text = models.TextField(default="", blank=True, null=True)
 
 
 class Dictionary(models.Model):
@@ -210,6 +235,69 @@ class Dictionary(models.Model):
 
         logger.info("Created %d token vector entries" % count)
 
+    def _vectorize_diff_corpus(self, queryset, tokenizer):
+
+        import math
+
+        logger.info("Saving document token vectors in corpus.")
+
+        total_documents = self.num_docs
+        gdict = self.gensim_dictionary
+        count = 0
+        total_count = queryset.count()
+        batch = []
+        batch_size = 1000
+        print_freq = 10000
+
+#        tokenized_scripts = tokenizer(scripts)
+
+        for script_diff in queryset.iterator():
+            tokens = tokenizer.tokenize(script_diff)
+            bow = gdict.doc2bow(tokens)
+            num_tokens = len(tokens)
+
+            for dic_token_index, dic_token_freq in bow:
+                dic_token_id = self.get_token_id(dic_token_index)
+                document_freq = gdict.dfs[dic_token_index]
+
+                try:
+                    tf = float(dic_token_freq)
+                    idf = math.log(total_documents / document_freq)
+                    tfidf = tf * idf
+                    batch.append(DiffTokenVectorElement(
+                                 dictionary=self,
+                                 dic_token_id=dic_token_id,
+                                 dic_token_index=dic_token_index,
+                                 frequency=dic_token_freq,
+                                 tfidf=tfidf,
+                                 script_diff=script_diff))
+                except:
+                    import pdb
+                    pdb.set_trace()
+
+
+            count += 1
+
+            if len(batch) > batch_size:
+                DiffTokenVectorElement.objects.bulk_create(batch)
+                batch = []
+
+                if settings.DEBUG:
+                    # prevent memory leaks
+                    from django.db import connection
+
+                    connection.queries = []
+
+            if count % print_freq == 0:
+                logger.info("Saved token-vectors for %d / %d documents" % (count, total_count))
+
+        if len(batch):
+            DiffTokenVectorElement.objects.bulk_create(batch)
+            logger.info("Saved token-vectors for %d / %d documents" % (count, total_count))
+
+        logger.info("Created %d token vector entries" % count)
+
+
 
     def _build_lda(self, name, corpus, num_topics=30, tokens_to_save=200, multicore=True):
         from gensim.models import LdaMulticore, LdaModel
@@ -309,6 +397,52 @@ class Dictionary(models.Model):
 
         if len(batch):
             ScriptTopic.objects.bulk_create(batch)
+            logger.info("Saved topic-vectors for %d / %d documents" % (count, total_documents))
+
+    def _apply_diff_lda(self, model, corpus, lda=None):
+
+        if lda is None:
+            # recover the lda
+            lda = model.load_from_file()
+
+        total_documents = len(corpus)
+        count = 0
+        batch = []
+        batch_size = 1000
+        print_freq = 10000
+
+        topics = list(model.topics.order_by('index'))
+
+        # Go through the bows and get their topic mixtures
+        for bow in corpus:
+            mixture = lda.get_document_topics(bow)
+            script_diff_id = corpus.current_script_diff_id
+
+            for topic_index, prob in mixture:
+                topic = topics[topic_index]
+                itemtopic = ScriptDiffTopic(topic_model=model,
+                                         topic=topic,
+                                         script_diff_id=script_diff_id,
+                                         probability=prob)
+                batch.append(itemtopic)
+
+            count += 1
+
+            if len(batch) > batch_size:
+                ScriptDiffTopic.objects.bulk_create(batch)
+                batch = []
+
+                if settings.DEBUG:
+                    # prevent memory leaks
+                    from django.db import connection
+
+                    connection.queries = []
+
+            if count % print_freq == 0:
+                logger.info("Saved topic-vectors for %d / %d documents" % (count, total_documents))
+
+        if len(batch):
+            ScriptDiffTopic.objects.bulk_create(batch)
             logger.info("Saved topic-vectors for %d / %d documents" % (count, total_documents))
 
     def _evaluate_lda(self, model, corpus, lda=None):
@@ -464,6 +598,25 @@ class ScriptTopic(models.Model):
         examples = cls.objects.filter(topic=topic, probability__gte=0.5).distinct()
         return examples.order_by('-probability')
 
+class ScriptDiffTopic(models.Model):
+    class Meta:
+        index_together = (
+            ('topic_model', 'script_diff'),
+            ('script_diff', 'topic'),
+        )
+
+    topic_model = models.ForeignKey(TopicModel, db_index=False)
+
+    topic = models.ForeignKey(Topic, related_name='script_diff_probabilities')
+    script_diff = models.ForeignKey(ScriptDiff, related_name="diff_topic_probabilities", db_index=False)
+
+    probability = models.FloatField()
+
+
+    @classmethod
+    def get_examples(cls, topic):
+        examples = cls.objects.filter(topic=topic, probability__gte=0.5).distinct()
+        return examples.order_by('-probability')
 
 class TokenVectorElement(models.Model):
     dictionary = models.ForeignKey(Dictionary, db_index=False, default=None, null=True, blank=True)
@@ -478,12 +631,6 @@ class TokenVectorElement(models.Model):
 
     def to_tuple(self, use_tfidf=True):
         return (self.dic_token_index, self.tfidf) if use_tfidf else (self.dic_token_index, self.frequency)
-
-class SimilarityPair(models.Model):
-    type = models.CharField(max_length=32, default="cosine", null=False, blank=False, db_index=True)
-    src_script = models.ForeignKey(Script, related_name="similarity_pairs", db_index=True)
-    tar_script = models.ForeignKey(Script, db_index=True)
-    similarity = models.FloatField(default=0.0)
 
 
 class DifferenceNote(models.Model):
@@ -505,3 +652,19 @@ class DifferenceNote(models.Model):
         index_together = (
             "src_script", "tar_script"
         )
+
+
+
+
+class DiffTokenVectorElement(models.Model):
+    dictionary = models.ForeignKey(Dictionary, db_index=False, default=None, null=True, blank=True)
+
+    script_diff = models.ForeignKey(ScriptDiff, related_name="diff_token_vector_elements")
+    dic_token = models.ForeignKey(DictToken, related_name="diff_token_vector_elements")
+
+    frequency = models.IntegerField(default=0)
+    dic_token_index = models.IntegerField(default=0)
+    tfidf = models.FloatField(default=0.0)
+
+    def to_tuple(self, use_tfidf=True):
+        return (self.dic_token_index, self.tfidf) if use_tfidf else (self.dic_token_index, self.frequency)
