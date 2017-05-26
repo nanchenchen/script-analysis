@@ -197,11 +197,14 @@ class LambdaWordFilter(object):
 def standard_topic_pipeline(context, dataset_id, num_topics, **kwargs):
     dictionary = context.find_dictionary()
     if dictionary is None:
+        logger.info("Dictionary does not exist. Creating...")
         dictionary = context.build_dictionary(dataset_id=dataset_id)
 
     if not context.bows_exist(dictionary):
+        logger.info("Bag of words does not exist. Creating...")
         context.build_bows(dictionary)
 
+    logger.info("Building LDA")
     model, lda = context.build_lda(dictionary, num_topics=num_topics, **kwargs)
     context.apply_lda(dictionary, model, lda)
     context.evaluate_lda(dictionary, model, lda)
@@ -232,6 +235,9 @@ def build_script_dictionary(dataset_id):
 
 
 class DiffTopicContext(TopicContext):
+    def bows_exist(self, dictionary):
+        return DiffTokenVectorElement.objects.filter(dictionary=dictionary).exists()
+
     def build_bows(self, dictionary):
         texts = DbTextIterator(self.queryset)
         tokenized_texts = self.tokenizer(texts, *self.filters)
