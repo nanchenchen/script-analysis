@@ -17,20 +17,42 @@ def tokenize_line(line):
     tokens = tokenize.generate_tokens(StringIO(line).readline)
     tokens_list = []
     for token in tokens:
-        type = tokenize.tok_name[token[0]]
-        text = token[1]
-        tokens_list.append((type, text))
+        token_type = tokenize.tok_name[token[0]]
+        token_text = token[1]
+        tokens_list.append((token_type, token_text))
     return tokens_list
 
 
 def filter_out_token(seq):
-    remove_types = ['OP', #'COMMENT',
+    remove_types = ['OP',
+                    #'COMMENT',
+                    'INDENT',
+                    'DEDENT',
                     'ENDMARKER', 'NL']
     return filter(lambda (token_type, token_text): token_type not in remove_types, seq)
+
+def comp_tokens(token1, token2):
+    support_text_modified_types = ['STRING', 'NUMBER']
+    if token1 == token2:
+        return 0
+    else:
+        token1_type, token1_text = token1
+        token2_type, token2_text = token2
+
+        # for string and number, we consider them same but text is modified
+        if token1_type == token2_type \
+           and token1_type in support_text_modified_types:
+            return 1
+        else:
+            return -1
+
 
 def editing_dist(seq1, seq2, mode='dist'):
     seq1 = filter_out_token(seq1)
     seq2 = filter_out_token(seq2)
+
+    print seq1
+    print seq2
 
     len1 = len(seq1)
     len2 = len(seq2)
@@ -50,10 +72,27 @@ def editing_dist(seq1, seq2, mode='dist'):
 
     for idx1, seq1_ele in enumerate(seq1):
         for idx2, seq2_ele in enumerate(seq2):
-            if seq1_ele == seq2_ele:
+            if comp_tokens(seq1_ele, seq2_ele) >= 0:
                 dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2]
             else:
                 dp[idx1 + 1][idx2 + 1] = min(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1]) + 1
+
+    print "%10s\t" %"",
+    for j in range(len2):
+        print "\t%10s" % seq2[j][1],
+
+    print "\n"
+    for i in range(len1 + 1):
+        if i == 0:
+            print "%10s" %"",
+            print "\t",
+        else:
+            print "%10s" % seq1[i - 1][1],
+            print "\t",
+        for j in range(len2 + 1):
+            print "\t%5d" % dp[i][j],
+        print "\n"
+
     if mode == 'dist':
         return dp[len1][len2] / (len1 + len2)
     elif mode == 'diff':
@@ -61,7 +100,14 @@ def editing_dist(seq1, seq2, mode='dist'):
         i = len1
         j = len2
         while i > 0 and j > 0:
-            if seq1[i - 1] == seq2[j - 1]:
+            comp_results = comp_tokens(seq1[i - 1], seq2[j - 1])
+            print seq1[i - 1], seq2[j - 1], comp_results
+            if comp_results >= 0:
+
+                if comp_results > 0:
+                    # modified
+                    diff_tokens = [(seq1[i - 1][0], seq1[i - 1][1] + "<->" + seq2[j - 1][1])] + diff_tokens
+
                 i -= 1
                 j -= 1
             elif dp[i - 1][j] <= dp[i][j - 1]:
@@ -70,6 +116,8 @@ def editing_dist(seq1, seq2, mode='dist'):
             elif dp[i - 1][j] > dp[i][j - 1]:
                 diff_tokens = [seq2[j - 1]] + diff_tokens
                 j -= 1
+
+        print diff_tokens
         return diff_tokens
 
 def line_matching_by_lcs(list1, list2, matching_threshold=0.5):
@@ -232,7 +280,7 @@ def bipartite_matching(capacity_graph, cost_graph):
     pass
 
 
-def extract_diff_tokens(script_diff, idx):
+def extract_diff_tokens(script_diff, idx=0):
     print "Script diff %d" %(idx)
     # Step 1: Extract + and - lines
     diff_text = script_diff.text
@@ -245,8 +293,8 @@ def extract_diff_tokens(script_diff, idx):
     # Step 1.5: Tokenize
     diff_lines_plus_t = [tokenize_line(line) for line in diff_lines_plus]   # tokenize
     diff_lines_minus_t = [tokenize_line(line) for line in diff_lines_minus]   # tokenize
-    #print diff_lines_plus_t
-    #print diff_lines_minus_t
+    # print diff_lines_plus_t
+    # print diff_lines_minus_t
 
     diff_tokens = []
     matching_items = line_matching_by_lcs(diff_lines_plus_t, diff_lines_minus_t)
@@ -286,22 +334,23 @@ class Command(BaseCommand):
             raise CommandError("Dataset id must be a number.")
 
         from pyanalysis.apps.enhance.models import ScriptDiff
-        diffs = ScriptDiff.objects.all()
-        #diffs = ScriptDiff.objects.get(id=3)
-
-        from gensim.corpora import Dictionary as GensimDictionary
-        dictionary = GensimDictionary(extract_diff_tokens(diff, idx) for idx, diff in enumerate(diffs))
-        print(dictionary)
-
-        corpus = [dictionary.doc2bow(extract_diff_tokens(diff, idx)) for idx, diff in enumerate(diffs)]
-
-        from gensim.models.tfidfmodel import TfidfModel
-        tfidf = TfidfModel(corpus)
-
-        corpus_tfidf = tfidf[corpus]
-
-        from gensim.models.ldamodel import LdaModel
-        lda = LdaModel(corpus=corpus_tfidf, id2word=dictionary, num_topics=100, update_every=1, chunksize=10000, passes=1)
+        diff = ScriptDiff.objects.get(id=60)
+        print extract_diff_tokens(diff)
+        # diffs = ScriptDiff.objects.all()
+        #
+        # from gensim.corpora import Dictionary as GensimDictionary
+        # dictionary = GensimDictionary(extract_diff_tokens(diff, idx) for idx, diff in enumerate(diffs))
+        # print(dictionary)
+        #
+        # corpus = [dictionary.doc2bow(extract_diff_tokens(diff, idx)) for idx, diff in enumerate(diffs)]
+        #
+        # from gensim.models.tfidfmodel import TfidfModel
+        # tfidf = TfidfModel(corpus)
+        #
+        # corpus_tfidf = tfidf[corpus]
+        #
+        # from gensim.models.ldamodel import LdaModel
+        # lda = LdaModel(corpus=corpus_tfidf, id2word=dictionary, num_topics=100, update_every=1, chunksize=10000, passes=1)
 
         import pdb
         pdb.set_trace()
