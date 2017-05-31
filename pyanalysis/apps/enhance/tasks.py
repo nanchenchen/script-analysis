@@ -270,3 +270,17 @@ def diff_topic_context(name, dataset_id):
                         tokenizer=DiffTokenLoader,
                         filters=filters,
                         minimum_frequency=1)
+
+def diff_topic_context_with_merged(name, dataset_id):
+    from pyanalysis.apps.enhance.models import ScriptDiff
+    diffs = ScriptDiff.objects.filter(pair__src_script__dataset_id=dataset_id)
+    queryset = diffs.all()
+
+    filters = [
+
+    ]
+
+    return DiffTopicContext(name=name, queryset=queryset,
+                        tokenizer=MergedDiffTokenLoader,
+                        filters=filters,
+                        minimum_frequency=1)

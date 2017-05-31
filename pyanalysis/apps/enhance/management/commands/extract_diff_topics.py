@@ -25,7 +25,8 @@ class Command(BaseCommand):
         except ValueError:
             raise CommandError("Dataset id must be a number.")
 
-        from pyanalysis.apps.enhance.tasks import diff_topic_context, standard_topic_pipeline
+        # from pyanalysis.apps.enhance.tasks import diff_topic_context, standard_topic_pipeline
+        from pyanalysis.apps.enhance.tasks import diff_topic_context_with_merged, standard_topic_pipeline
 
-        context = diff_topic_context(name, dataset_id=dataset_id)
+        context = diff_topic_context_with_merged(name, dataset_id=dataset_id)
         standard_topic_pipeline(context, dataset_id=dataset_id, num_topics=int(num_topics))

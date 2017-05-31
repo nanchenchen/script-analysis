@@ -25,7 +25,7 @@ def tokenize_line(line):
 
 def filter_out_token(seq):
     remove_types = ['OP',
-                    #'COMMENT',
+                    'COMMENT',
                     'INDENT',
                     'DEDENT',
                     'ENDMARKER', 'NL']
@@ -106,6 +106,7 @@ def editing_dist(seq1, seq2, mode='dist'):
 
                 if comp_results > 0:
                     # modified
+                    # diff_tokens = [(seq1[i - 1][0], "Modified_" + seq1[i - 1][0])] + diff_tokens
                     diff_tokens = [(seq1[i - 1][0], seq1[i - 1][1] + "<->" + seq2[j - 1][1])] + diff_tokens
 
                 i -= 1

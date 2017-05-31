@@ -231,3 +231,78 @@ class DiffTokenLoader(TokenLoader):
 
     def tokenize(self, script_diff):
         return self.extract_diff_tokens(script_diff)
+
+class MergedDiffTokenLoader(DiffTokenLoader):
+
+    def filter_out_token(self, seq):
+        remove_types = ['OP',
+                        'COMMENT',
+                        'INDENT',
+                        'DEDENT',
+                        'ENDMARKER', 'NL']
+        return filter(lambda (token_type, token_text): token_type not in remove_types, seq)
+
+    def comp_tokens(self, token1, token2):
+        support_text_modified_types = ['STRING', 'NUMBER']
+        if token1 == token2:
+            return 0
+        else:
+            token1_type, token1_text = token1
+            token2_type, token2_text = token2
+
+            # for string and number, we consider them same but text is modified
+            if token1_type == token2_type \
+               and token1_type in support_text_modified_types:
+                return 1
+            else:
+                return -1
+
+    def editing_dist(self, seq1, seq2, mode='dist'):
+        seq1 = self.filter_out_token(seq1)
+        seq2 = self.filter_out_token(seq2)
+
+        len1 = len(seq1)
+        len2 = len(seq2)
+        if len1 == 0 and len2 == 0:
+            if mode == 'dist':
+                return 0
+            elif mode == 'diff':
+                return []
+        dp = np.zeros((len1 + 1, len2 + 1))
+
+        # initialize empty string's editing dist
+        for idx1, seq1_ele in enumerate(seq1):
+            dp[idx1 + 1][0] = idx1 + 1
+
+        for idx2, seq2_ele in enumerate(seq2):
+            dp[0][idx2 + 1] = idx2 + 1
+
+        for idx1, seq1_ele in enumerate(seq1):
+            for idx2, seq2_ele in enumerate(seq2):
+                if self.comp_tokens(seq1_ele, seq2_ele) >= 0:
+                    dp[idx1 + 1][idx2 + 1] = dp[idx1][idx2]
+                else:
+                    dp[idx1 + 1][idx2 + 1] = min(dp[idx1 + 1][idx2], dp[idx1][idx2 + 1]) + 1
+        if mode == 'dist':
+            return dp[len1][len2] / (len1 + len2)
+        elif mode == 'diff':
+            diff_tokens = []
+            i = len1
+            j = len2
+            while i > 0 and j > 0:
+                comp_results = self.comp_tokens(seq1[i - 1], seq2[j - 1])
+                if comp_results >= 0:
+
+                    if comp_results > 0:
+                        # modified
+                        # diff_tokens = [(seq1[i - 1][0], "Modified_" + seq1[i - 1][0])] + diff_tokens
+                        diff_tokens = [(seq1[i - 1][0], seq1[i - 1][1] + "<->" + seq2[j - 1][1])] + diff_tokens
+                        i -= 1
+                        j -= 1
+                elif dp[i - 1][j] <= dp[i][j - 1]:
+                    diff_tokens = [seq1[i - 1]] + diff_tokens
+                    i -= 1
+                elif dp[i - 1][j] > dp[i][j - 1]:
+                    diff_tokens = [seq2[j - 1]] + diff_tokens
+                    j -= 1
+            return diff_tokens
